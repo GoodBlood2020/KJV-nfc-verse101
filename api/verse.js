@@ -1,23 +1,36 @@
-import fs from 'fs';
-import path from 'path';
-
 export default async function handler(req, res) {
-  const filePath = path.join(process.cwd(), 'verses.kjv.references.json');
-  const raw = fs.readFileSync(filePath, 'utf8');
-  const data = JSON.parse(raw);
+  try {
+    // Full-KJV random verse:
+    // docs: /data/TRANSLATION_ID/random  where TRANSLATION_ID can be "kjv"
+    const r = await fetch("https://bible-api.com/data/kjv/random", {
+      headers: { accept: "application/json" }
+    });
 
-  const ref = data.verses[Math.floor(Math.random() * data.verses.length)];
-  const refUrl = encodeURIComponent(ref).replace(/%20/g, '+');
+    if (!r.ok) throw new Error(`Upstream HTTP ${r.status}`);
 
-  const response = await fetch(
-    `https://dailybible.ca/api/${refUrl}?translation=kjv`
-  );
-  const verse = await response.json();
+    const j = await r.json();
 
-  res.setHeader('Cache-Control', 'no-store');
-  res.status(200).json({
-    reference: verse.reference || ref,
-    text: verse.text,
-    source: 'KJV public domain'
-  });
+    // bible-api returns JSON with reference + text (and sometimes other fields)
+    const reference = j.reference || j.verses?.[0]?.book_name
+      ? `${j.verses[0].book_name} ${j.verses[0].chapter}:${j.verses[0].verse}`
+      : "KJV Verse";
+
+    const text =
+      j.text ||
+      (j.verses && j.verses.map(v => v.text).join(" ").trim()) ||
+      "";
+
+    res.setHeader("Cache-Control", "no-store");
+    res.status(200).json({
+      reference,
+      text,
+      source: "bible-api.com (KJV)"
+    });
+  } catch (e) {
+    res.status(500).json({
+      reference: "Error",
+      text: "Could not load a verse. Try again.",
+      source: String(e)
+    });
+  }
 }
