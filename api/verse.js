@@ -10,29 +10,29 @@ export default async function handler(req, res) {
     let reference = "";
     let text = "";
 
-    // If the API provides "reference" + "text"
-    if (typeof j.text === "string" && j.text.trim()) {
-      text = j.text.trim();
-    }
+    // A) If top-level reference/text exist
     if (typeof j.reference === "string" && j.reference.trim()) {
       reference = j.reference.trim();
     }
+    if (typeof j.text === "string" && j.text.trim()) {
+      text = j.text.trim();
+    }
 
-    // If the API provides verses[]
-    if ((!text || !reference) && Array.isArray(j.verses) && j.verses.length) {
+    // B) If verses[] exists, build reference + text from it
+    if (Array.isArray(j.verses) && j.verses.length) {
       const v0 = j.verses[0];
 
-      if (!text) {
-        text = j.verses.map(v => v.text).join(" ").trim();
-      }
-
-      // Build reference like "John 3:16"
       if (!reference && v0?.book_name && v0?.chapter && v0?.verse) {
         reference = `${v0.book_name} ${v0.chapter}:${v0.verse}`;
       }
+
+      // Join all verses (covers multi-verse passages too)
+      if (!text) {
+        text = j.verses.map(v => v.text).join(" ").trim();
+      }
     }
 
-    // Absolute fallback (never blank)
+    // Final safety
     if (!reference) reference = "KJV Verse";
     if (!text) throw new Error("No verse text parsed");
 
