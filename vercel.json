@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "functions": {
+    "api/verse.js": {
+      "includeFiles": "api/verses.kjv.references.json"
+    }
+  }
+}

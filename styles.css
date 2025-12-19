@@ -1,0 +1,11 @@
+body {
+  background: #111;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+  padding: 30px;
+}
+button {
+  padding: 10px 18px;
+  font-size: 16px;
+}
