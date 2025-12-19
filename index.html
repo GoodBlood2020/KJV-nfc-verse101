@@ -1,16 +1,58 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Random KJV Verse</title>
+  <meta name="description" content="Tap an NFC tag (or scan a QR) to receive a different KJV Bible verse each time.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>📖 Random Bible Verse (KJV)</h1>
-  <p id="ref"></p>
-  <p id="verse"></p>
-  <button onclick="loadVerse()">New verse</button>
+  <main class="wrap">
+    <header class="hero">
+      <div class="pill">KJV • NFC / QR</div>
+      <h1>Receive a Bible verse</h1>
+      <p class="sub">Tap again anytime for another verse.</p>
+    </header>
+
+    <section class="card" aria-live="polite">
+      <div class="row">
+        <div class="ref" id="ref">Ready</div>
+        <button class="btn" type="button" onclick="loadVerse()">New verse</button>
+      </div>
+      <div class="verse" id="verse">Tap <b>New verse</b> to load a verse.</div>
+
+      <div class="footer">
+        <button class="btn ghost" type="button" id="shareBtn">Share</button>
+      </div>
+    </section>
+
+    <section class="small note">
+      Tip: Put a printed QR code next to the tag for phones without NFC.
+    </section>
+  </main>
+
   <script src="app.js"></script>
+  <script>
+    // Share button
+    const shareBtn = document.getElementById('shareBtn');
+    shareBtn.addEventListener('click', async () => {
+      const ref = document.getElementById('ref').textContent;
+      const verse = document.getElementById('verse').textContent;
+      const text = `${ref} — ${verse}`;
+
+      if (navigator.share) {
+        try { await navigator.share({ title: "KJV Verse", text, url: window.location.href }); } catch {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(text);
+          shareBtn.textContent = "Copied!";
+          setTimeout(() => (shareBtn.textContent = "Share"), 1200);
+        } catch {
+          alert(text);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
