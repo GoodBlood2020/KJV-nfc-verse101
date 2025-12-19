@@ -1,34 +1,56 @@
 const refEl = document.getElementById('ref');
 const verseEl = document.getElementById('verse');
 
+let busy = false;
+
+function setUI(reference, text) {
+  refEl.textContent = reference || "KJV Verse";
+  verseEl.textContent = text || "";
+}
+
+async function fetchVerseOnce() {
+  const res = await fetch('/api/verse', { cache: 'no-store' });
+  const data = await res.json();
+
+  // If backend explicitly returns an error message, treat as failure
+  if (
+    (typeof data.reference === "string" && data.reference.toLowerCase() === "error") ||
+    (typeof data.text === "string" && data.text.toLowerCase().includes("could not load"))
+  ) {
+    throw new Error("Verse service error");
+  }
+
+  setUI(data.reference || "KJV Verse", data.text || "Verse text unavailable.");
+}
+
 async function loadVerse() {
-  refEl.textContent = "Loading…";
-  verseEl.textContent = "Getting a fresh verse…";
+  if (busy) return;
+  busy = true;
+
+  setUI("Loading…", "Getting a fresh verse…");
 
   try {
-    const res = await fetch('/api/verse', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    // First attempt
+    await fetchVerseOnce();
+  } catch {
+    // Small delay, then retry once
+    await new Promise(r => setTimeout(r, 1200));
 
-    const data = await res.json();
-
-    // Always show reference if present
-    refEl.textContent =
-      (typeof data.reference === "string" && data.reference.trim())
-        ? data.reference
-        : "KJV Verse";
-
-    // Always show verse text if present
-    verseEl.textContent =
-      (typeof data.text === "string" && data.text.trim())
-        ? data.text
-        : "Verse text unavailable.";
-
-  } catch (e) {
-    refEl.textContent = "Error";
-    verseEl.textContent =
-      "Could not load a verse. Please try again in a few seconds.";
+    try {
+      await fetchVerseOnce();
+    } catch {
+      setUI(
+        "Try again",
+        "Verse service is busy right now. Wait a few seconds and tap again."
+      );
+    }
+  } finally {
+    busy = false;
   }
 }
 
-// Load one verse immediately when page opens
+// Expose globally so onclick="loadVerse()" keeps working
+window.loadVerse = loadVerse;
+
+// Load one verse immediately on page open
 loadVerse();
