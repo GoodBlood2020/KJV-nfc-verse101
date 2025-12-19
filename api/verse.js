@@ -1,24 +1,35 @@
 export default async function handler(req, res) {
   try {
-    // Full-KJV random verse:
-    // docs: /data/TRANSLATION_ID/random  where TRANSLATION_ID can be "kjv"
     const r = await fetch("https://bible-api.com/data/kjv/random", {
       headers: { accept: "application/json" }
     });
 
     if (!r.ok) throw new Error(`Upstream HTTP ${r.status}`);
-
     const j = await r.json();
 
-    // bible-api returns JSON with reference + text (and sometimes other fields)
-    const reference = j.reference || j.verses?.[0]?.book_name
-      ? `${j.verses[0].book_name} ${j.verses[0].chapter}:${j.verses[0].verse}`
-      : "KJV Verse";
+    let reference = "KJV Verse";
+    let text = "";
 
-    const text =
-      j.text ||
-      (j.verses && j.verses.map(v => v.text).join(" ").trim()) ||
-      "";
+    // Case 1: direct text
+    if (j.text && typeof j.text === "string") {
+      text = j.text.trim();
+      reference = j.reference || reference;
+    }
+
+    // Case 2: verses array
+    if ((!text || text.length === 0) && Array.isArray(j.verses)) {
+      text = j.verses.map(v => v.text).join(" ").trim();
+
+      if (j.verses.length > 0) {
+        const v = j.verses[0];
+        reference = `${v.book_name} ${v.chapter}:${v.verse}`;
+      }
+    }
+
+    // Absolute fallback (should never hit, but safe)
+    if (!text) {
+      throw new Error("No verse text parsed from API response");
+    }
 
     res.setHeader("Cache-Control", "no-store");
     res.status(200).json({
@@ -26,10 +37,11 @@ export default async function handler(req, res) {
       text,
       source: "bible-api.com (KJV)"
     });
+
   } catch (e) {
     res.status(500).json({
       reference: "Error",
-      text: "Could not load a verse. Try again.",
+      text: "Could not load a verse. Please try again.",
       source: String(e)
     });
   }
