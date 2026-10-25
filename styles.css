@@ -19,7 +19,8 @@ body{
 }
 /* Center the page and retain side padding on narrow screens. */
 .wrap{max-width:720px;margin:0 auto;padding:26px 16px 40px}
-.hero{padding:8px 4px 10px}
+.hero{padding:12px 4px 16px}
+.hero .pill{letter-spacing:.12em;font-weight:800;color:#d2c8ff}
 .pill{
   display:inline-block;
   padding:6px 10px;
@@ -28,7 +29,7 @@ body{
   font-size:12px;
   color:var(--muted);
 }
-h1{margin:12px 0 6px;font-size:38px;letter-spacing:-.02em}
+h1{margin:12px 0 8px;font-size:clamp(36px,8vw,46px);letter-spacing:-.045em;line-height:1.1;font-weight:850}
 .sub{margin:0;color:var(--muted);line-height:1.45}
 .card{
   margin-top:14px;
@@ -90,4 +91,4 @@ h1{margin:12px 0 6px;font-size:38px;letter-spacing:-.02em}
 /* Visible focus helps keyboard users identify the active control. */
 .btn:focus-visible,.daily-select:focus-visible,.daily-exercise:focus-within{outline:3px solid #d2c8ff;outline-offset:3px}
 /* On small phones, wrap exercise amounts beneath their names. */
-@media(max-width:420px){h1{font-size:30px}.daily-title{font-size:24px}.daily-verse{font-size:18px}.daily-exercise{flex-wrap:wrap}.daily-exercise-amount{width:100%;text-align:left;margin-left:31px}}
+@media(max-width:420px){h1{font-size:36px}.daily-title{font-size:24px}.daily-verse{font-size:18px}.daily-exercise{flex-wrap:wrap}.daily-exercise-amount{width:100%;text-align:left;margin-left:31px}}

@@ -1,6 +1,15 @@
-# KJV NFC Verse — Daily Faith + Fitness
+# Daily Lift — Faith + Fitness
 
-This is the existing KJV NFC verse website enhanced with a date-based KJV verse and approachable daily movement plan. Existing NFC tags and QR codes can continue pointing to the same root URL.
+**A daily KJV verse and approachable workout plan.** Daily Lift pairs scripture, reflection, and movement in one NFC-friendly experience. Existing NFC tags and QR codes can continue pointing to the same root URL.
+
+## Brand and domain maintenance
+
+- **Public brand:** Daily Lift
+- **Descriptor:** Faith + Fitness
+- **Tagline:** A daily KJV verse and approachable workout plan.
+- **Current URL:** `https://kjv-nfc-verse101.vercel.app/` (keep active for existing NFC tags).
+- The GitHub repository and Vercel project retain their existing identifiers. Rebranding the website does not automatically register a domain or change NFC destinations.
+- If a custom domain is purchased, configure it in the existing Vercel project and test it before updating printed materials or NFC tags. Existing links should continue to work.
 
 ## How the site works
 
