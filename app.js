@@ -157,6 +157,14 @@ function renderDaily(data) {
 
   dailyCard.append(el("p", "daily-caution", "Move at a comfortable pace. Rest as needed and stop if you feel pain or dizziness. Adjust exercises to your abilities."));
 
+  // Link to the creator's profile separately from any individual daily workout video.
+  // A profile link is always available; videoUrl remains empty until a matching video is chosen.
+  const creatorLink = el("a", "daily-tiktok-profile", "Follow @djephthah on TikTok");
+  creatorLink.href = "https://www.tiktok.com/@djephthah";
+  creatorLink.target = "_blank";
+  creatorLink.rel = "noopener noreferrer";
+  dailyCard.append(creatorLink);
+
   // Only offer HTTPS TikTok links. Malformed or other-host links are silently omitted.
   if (typeof data.videoUrl === "string" && data.videoUrl) {
     try {
