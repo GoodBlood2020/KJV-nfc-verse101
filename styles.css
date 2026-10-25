@@ -81,6 +81,10 @@ h1{margin:12px 0 6px;font-size:38px;letter-spacing:-.02em}
 .daily-exercise:has(input:checked) .daily-exercise-name{text-decoration:line-through;color:var(--muted)}
 .daily-progress{font-size:13px;font-weight:700;color:#d2c8ff}
 .daily-caution{font-size:12px;line-height:1.5;color:var(--muted);margin:14px 0 0}
+/* Dedicated creator profile link. Video-specific links, if configured, appear separately. */
+.daily-tiktok-profile{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:16px;padding:10px 16px;border-radius:12px;border:1px solid #d2c8ff;color:#f2f2f6;background:#27273a;text-decoration:none;font-weight:700;text-align:center}
+.daily-tiktok-profile:hover{background:#34344d}
+.daily-tiktok-profile:focus-visible{outline:3px solid #d2c8ff;outline-offset:3px}
 .daily-video{display:inline-block;color:#d2c8ff;font-weight:700;margin-top:14px}
 .daily-error{line-height:1.5}
 /* Visible focus helps keyboard users identify the active control. */
