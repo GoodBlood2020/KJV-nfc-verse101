@@ -70,8 +70,8 @@ const verseCard = document.querySelector("main .card");
 if (verseCard) verseCard.before(dailyCard);
 const heading = document.querySelector(".hero h1");
 const intro = document.querySelector(".hero .sub");
-if (heading) heading.textContent = "Your Daily Word + Workout";
-if (intro) intro.textContent = "A daily KJV verse and approachable movement plan. Tap New verse below for an extra scripture.";
+if (heading) heading.textContent = "Daily Lift";
+if (intro) intro.textContent = "A daily KJV verse and approachable workout plan.";
 dailyCard.append(el("p", "daily-loading", "Loading today's verse and workout…"));
 
 // Check the basic response shape before replacing the loading message.
