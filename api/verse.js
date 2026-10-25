@@ -1,96 +1,74 @@
-// Tries bible-api.com first (true random KJV),
-// falls back to dailybible.ca (random reference from local pool) if bible-api is rate-limited/down.
+import fs from "node:fs";
+import path from "node:path";
 
-import fs from "fs";
-import path from "path";
+const TIMEOUT_MS = 4500;
+const DEFAULT_REFERENCE = "John 3:16";
 
-function pickRandomRefFromFullIndexFallbackPool() {
-  // IMPORTANT: this is a fallback pool (can be expanded).
-  // If you want the *true full* 31,102-verse index offline,
-  // that’s a separate build step (bigger file).
-  const filePath = path.join(process.cwd(), "verses.kjv.references.json");
-  const raw = fs.readFileSync(filePath, "utf8");
-  const data = JSON.parse(raw);
-
-  // Supports either {verses:[...]} or {themes:{...}}
-  if (Array.isArray(data.verses) && data.verses.length) return data.verses[Math.floor(Math.random() * data.verses.length)];
-
-  if (data.themes && typeof data.themes === "object") {
-    const all = Object.values(data.themes).flat().filter(Boolean);
-    if (all.length) return all[Math.floor(Math.random() * all.length)];
+function pickFallbackReference() {
+  try {
+    const file = path.join(process.cwd(), "verses.kjv.references.json");
+    const data = JSON.parse(fs.readFileSync(file, "utf8"));
+    const references = Array.isArray(data.verses)
+      ? data.verses
+      : Object.values(data.themes || {}).flat();
+    const valid = references.filter(item => typeof item === "string" && item.trim());
+    if (valid.length) return valid[Math.floor(Math.random() * valid.length)];
+  } catch (error) {
+    console.error("Verse reference fallback file unavailable:", error);
   }
-
-  // last-resort
-  return "John 3:16";
+  return DEFAULT_REFERENCE;
 }
 
-async function tryBibleApiRandomKJV() {
-  const r = await fetch("https://bible-api.com/data/kjv/random", {
-    headers: { accept: "application/json" }
+async function requestJson(url) {
+  const response = await fetch(url, {
+    headers: { accept: "application/json" },
+    signal: AbortSignal.timeout(TIMEOUT_MS)
   });
-
-  // bible-api rate limit: 15 requests / 30 seconds per IP :contentReference[oaicite:1]{index=1}
-  if (r.status === 429) throw new Error("RATE_LIMIT");
-
-  if (!r.ok) throw new Error(`BIBLE_API_HTTP_${r.status}`);
-
-  const j = await r.json();
-
-  let reference = "";
-  let text = "";
-
-  if (typeof j.reference === "string" && j.reference.trim()) reference = j.reference.trim();
-  if (typeof j.text === "string" && j.text.trim()) text = j.text.trim();
-
-  if ((!reference || !text) && Array.isArray(j.verses) && j.verses.length) {
-    const v0 = j.verses[0];
-    if (!reference && v0?.book_name && v0?.chapter && v0?.verse) {
-      reference = `${v0.book_name} ${v0.chapter}:${v0.verse}`;
-    }
-    if (!text) text = j.verses.map(v => v.text).join(" ").trim();
-  }
-
-  if (!text) throw new Error("BIBLE_API_PARSE_FAIL");
-  if (!reference) reference = "KJV Verse";
-
-  return { reference, text, source: "bible-api.com (KJV)" };
+  if (!response.ok) throw new Error(`Bible provider returned HTTP ${response.status}`);
+  return response.json();
 }
 
-async function fallbackDailyBibleKJV() {
-  // dailybible.ca is a public-domain Bible API (verse lookup by reference) :contentReference[oaicite:2]{index=2}
-  const ref = pickRandomRefFromFullIndexFallbackPool();
-  const refUrl = encodeURIComponent(ref).replace(/%20/g, "+");
-  const r = await fetch(`https://dailybible.ca/api/${refUrl}?translation=kjv`, {
-    headers: { accept: "application/json" }
-  });
-  if (!r.ok) throw new Error(`DAILYBIBLE_HTTP_${r.status}`);
-  const j = await r.json();
+async function primaryVerse() {
+  const data = await requestJson("https://bible-api.com/data/kjv/random");
+  const verses = Array.isArray(data.verses) ? data.verses : [];
+  const reference = (typeof data.reference === "string" && data.reference.trim()) ||
+    (verses[0]?.book_name && verses[0]?.chapter && verses[0]?.verse
+      ? `${verses[0].book_name} ${verses[0].chapter}:${verses[0].verse}` : "");
+  const text = (typeof data.text === "string" && data.text.trim()) ||
+    verses.map(verse => verse.text || "").join(" ").trim();
+  if (!reference || !text) throw new Error("Primary provider supplied an invalid verse");
+  return { reference, text, translation: "KJV", source: "bible-api.com" };
+}
 
-  const reference = j.reference || ref;
-  const text = j.text || "";
-  if (!text) throw new Error("DAILYBIBLE_PARSE_FAIL");
-
-  return { reference, text, source: "dailybible.ca (KJV, public domain)" };
+async function secondaryVerse() {
+  const selected = pickFallbackReference();
+  const encoded = encodeURIComponent(selected).replace(/%20/g, "+");
+  const data = await requestJson(`https://dailybible.ca/api/${encoded}?translation=kjv`);
+  const text = typeof data.text === "string" ? data.text.trim() : "";
+  if (!text) throw new Error("Fallback provider supplied an invalid verse");
+  const reference = typeof data.reference === "string" && data.reference.trim()
+    ? data.reference.trim() : selected;
+  return { reference, text, translation: "KJV", source: "dailybible.ca" };
 }
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
-
-  try {
-    // Primary: true random from bible-api.com
-    const out = await tryBibleApiRandomKJV();
-    return res.status(200).json(out);
-  } catch (e) {
-    // Fallback: still returns a verse even if bible-api is busy/down
-    try {
-      const out2 = await fallbackDailyBibleKJV();
-      return res.status(200).json(out2);
-    } catch (e2) {
-      return res.status(200).json({
-        reference: "Try again",
-        text: "Verse services are temporarily busy. Wait 10–20 seconds and tap again.",
-        source: `primary=${String(e)} fallback=${String(e2)}`
-      });
-    }
+  if (req.method && req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+    return res.status(405).json({ error: "METHOD_NOT_ALLOWED" });
   }
+  try {
+    return res.status(200).json(await primaryVerse());
+  } catch (primaryError) {
+    console.error("Primary Bible provider failed:", primaryError);
+  }
+  try {
+    return res.status(200).json(await secondaryVerse());
+  } catch (secondaryError) {
+    console.error("Secondary Bible provider failed:", secondaryError);
+  }
+  return res.status(503).json({
+    error: "VERSE_UNAVAILABLE",
+    message: "Verse services are temporarily unavailable. Please try again."
+  });
 }
