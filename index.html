@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Random KJV Verse</title>
-  <meta name="description" content="Tap an NFC tag (or scan a QR) to receive a different KJV Bible verse each time.">
+  <title>Daily Lift | Faith + Fitness</title>
+  <meta name="description" content="Daily Lift — Faith + Fitness. A daily KJV verse and approachable workout plan. Read scripture, move with purpose, and track your progress.">
   <!-- Shared appearance, including the daily card created by app.js. -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="wrap">
     <header class="hero">
-      <div class="pill">KJV • NFC / QR</div>
-      <h1>Receive a Bible verse</h1>
-      <p class="sub">Tap again anytime for another verse.</p>
+      <div class="pill">FAITH + FITNESS</div>
+      <h1>Daily Lift</h1>
+      <p class="sub">A daily KJV verse and approachable workout plan.</p>
     </header>
 
     <!-- Keep ref/verse IDs and loadVerse() in sync with the browser controller. -->
@@ -47,7 +47,7 @@
 
       // Prefer the device share sheet; cancellation or rejection is quietly ignored.
       if (navigator.share) {
-        try { await navigator.share({ title: "KJV Verse", text, url: window.location.href }); } catch {}
+        try { await navigator.share({ title: "Daily Lift | KJV Verse", text, url: window.location.href }); } catch {}
       // Without native sharing, try copying; if clipboard access fails, show the text.
       } else {
         try {
