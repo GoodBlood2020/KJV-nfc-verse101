@@ -16,6 +16,12 @@ Update `VERSES` and `WORKOUTS` in `api/daily.js`, then commit the change. Verse 
 
 For a real 30-day or 365-day unique devotional calendar, add and review more curated daily verses before promoting the project as unique every day. Currently passages repeat every 14 days.
 
+## TikTok profile integration
+
+The daily workout card includes a permanent **Follow @djephthah on TikTok** link to `https://www.tiktok.com/@djephthah`. It is a profile link, **not** an automatic match to the day's exercise demonstration. The link is rendered in `app.js` and styled in `styles.css`. To change the creator handle in the future, update those references.
+
+Daily video deep links are separate: `api/daily.js` currently returns `videoUrl: null`, so a "Watch today's workout" link appears only after a verified public TikTok video URL is configured. Don't describe a profile link as a video of today's workout.
+
 ## Run tests
 
 Requires Node.js 20 or newer.
