@@ -1,12 +1,16 @@
+// Browser controller: the daily plan and random verse load independently.
+// These IDs belong to the static random-verse card in index.html.
 const refEl = document.getElementById("ref");
 const verseEl = document.getElementById("verse");
 let busy = false;
 
+// Use textContent so API text is displayed as text rather than interpreted as HTML.
 function setUI(reference, text) {
   refEl.textContent = reference || "KJV Verse";
   verseEl.textContent = text || "";
 }
 
+// The server chooses a Bible provider; the browser validates its normalized response.
 async function fetchVerseOnce() {
   const response = await fetch("/api/verse", { cache: "no-store" });
   if (!response.ok) throw new Error(`Verse API returned HTTP ${response.status}`);
@@ -18,6 +22,8 @@ async function fetchVerseOnce() {
   setUI(data.reference, data.text);
 }
 
+// Ignore overlapping clicks. Retry once after 800 ms, then show a friendly error.
+// finally releases the click guard whether the request succeeds or fails.
 async function loadVerse() {
   if (busy) return;
   busy = true;
@@ -39,6 +45,7 @@ async function loadVerse() {
 // Preserve the existing inline onclick handler and random verse behavior.
 window.loadVerse = loadVerse;
 
+// Build the daily card with DOM nodes and plain text instead of HTML strings.
 function el(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -46,6 +53,7 @@ function el(tag, className, text) {
   return node;
 }
 
+// Storage is optional: blocked access falls back to defaults without stopping the page.
 function savedValue(key, fallback) {
   try { return localStorage.getItem(key) || fallback; } catch { return fallback; }
 }
@@ -54,6 +62,7 @@ function saveValue(key, value) {
   try { localStorage.setItem(key, value); } catch { /* Private browsing may block storage. */ }
 }
 
+// Insert the daily plan before the existing verse card and announce updates politely.
 const dailyCard = el("section", "card daily-card");
 dailyCard.setAttribute("aria-label", "Today's faith and fitness plan");
 dailyCard.setAttribute("aria-live", "polite");
@@ -65,6 +74,7 @@ if (heading) heading.textContent = "Your Daily Word + Workout";
 if (intro) intro.textContent = "A daily KJV verse and approachable movement plan. Tap New verse below for an extra scripture.";
 dailyCard.append(el("p", "daily-loading", "Loading today's verse and workout…"));
 
+// Check the basic response shape before replacing the loading message.
 function renderDaily(data) {
   if (!data || !data.verse || !data.workout || !Array.isArray(data.workout.exercises)) {
     throw new Error("Daily API returned incomplete content");
@@ -103,9 +113,12 @@ function renderDaily(data) {
   const progress = el("p", "daily-progress");
   dailyCard.append(list, progress);
 
+  // Progress is separate for each server-provided date and difficulty level.
+  // Saved indexes refer to exercise positions; changing their order can affect saved progress.
   function drawExercises() {
     const level = levelSelect.value;
     const storageKey = `kjv-nfc-progress-${data.date}-${level}`;
+    // Ignore malformed JSON; keep only integer indexes from an array.
     let completed = [];
     try {
       const stored = JSON.parse(savedValue(storageKey, "[]"));
@@ -114,6 +127,7 @@ function renderDaily(data) {
     list.replaceChildren();
     const checkboxes = [];
 
+    // Store checked positions locally; no completion data is sent to the server.
     function update() {
       const done = checkboxes.flatMap((checkbox, index) => checkbox.checked ? [index] : []);
       saveValue(storageKey, JSON.stringify(done));
@@ -143,6 +157,7 @@ function renderDaily(data) {
 
   dailyCard.append(el("p", "daily-caution", "Move at a comfortable pace. Rest as needed and stop if you feel pain or dizziness. Adjust exercises to your abilities."));
 
+  // Only offer HTTPS TikTok links. Malformed or other-host links are silently omitted.
   if (typeof data.videoUrl === "string" && data.videoUrl) {
     try {
       const url = new URL(data.videoUrl);
@@ -157,6 +172,7 @@ function renderDaily(data) {
   }
 }
 
+// A failed daily request gets its own retry button; random verses remain independent.
 async function loadDaily() {
   try {
     const response = await fetch("/api/daily", { cache: "no-store" });

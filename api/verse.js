@@ -1,9 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 
+// Each external request has its own 4.5-second timeout; providers are tried in order.
 const TIMEOUT_MS = 4500;
 const DEFAULT_REFERENCE = "John 3:16";
 
+// Support either a flat verses array or the current themed reference lists.
+// This file supplies references, not offline verse text; the secondary API is still needed.
 function pickFallbackReference() {
   try {
     const file = path.join(process.cwd(), "verses.kjv.references.json");
@@ -19,6 +22,7 @@ function pickFallbackReference() {
   return DEFAULT_REFERENCE;
 }
 
+// Fetch JSON with an Accept header and reject HTTP errors before parsing the body.
 async function requestJson(url) {
   const response = await fetch(url, {
     headers: { accept: "application/json" },
@@ -28,6 +32,7 @@ async function requestJson(url) {
   return response.json();
 }
 
+// bible-api.com may return top-level text or a verses array; normalize both shapes.
 async function primaryVerse() {
   const data = await requestJson("https://bible-api.com/data/kjv/random");
   const verses = Array.isArray(data.verses) ? data.verses : [];
@@ -40,6 +45,7 @@ async function primaryVerse() {
   return { reference, text, translation: "KJV", source: "bible-api.com" };
 }
 
+// dailybible.ca looks up a selected reference with the KJV translation explicitly set.
 async function secondaryVerse() {
   const selected = pickFallbackReference();
   const encoded = encodeURIComponent(selected).replace(/%20/g, "+");
@@ -51,6 +57,8 @@ async function secondaryVerse() {
   return { reference, text, translation: "KJV", source: "dailybible.ca" };
 }
 
+// Vercel endpoint: avoid cached random results and reject unsupported methods early.
+// Log provider diagnostics on the server; return only a generic 503 if both fail.
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method && req.method !== "GET") {

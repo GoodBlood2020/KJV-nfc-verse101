@@ -1,3 +1,4 @@
+/* Shared theme variables: change these to update colors and corner rounding together. */
 :root{
   --bg:#0b0b10;
   --card:#141420;
@@ -16,6 +17,7 @@ body{
     var(--bg);
   color:var(--text);
 }
+/* Center the page and retain side padding on narrow screens. */
 .wrap{max-width:720px;margin:0 auto;padding:26px 16px 40px}
 .hero{padding:8px 4px 10px}
 .pill{
@@ -75,10 +77,13 @@ h1{margin:12px 0 6px;font-size:38px;letter-spacing:-.02em}
 .daily-exercise input{width:19px;height:19px;accent-color:#c1b1ff;flex-shrink:0}
 .daily-exercise-name{flex:1;font-size:14px}
 .daily-exercise-amount{font-size:12px;color:var(--muted);text-align:right}
+/* Checked appearance follows the native checkbox state maintained by app.js. */
 .daily-exercise:has(input:checked) .daily-exercise-name{text-decoration:line-through;color:var(--muted)}
 .daily-progress{font-size:13px;font-weight:700;color:#d2c8ff}
 .daily-caution{font-size:12px;line-height:1.5;color:var(--muted);margin:14px 0 0}
 .daily-video{display:inline-block;color:#d2c8ff;font-weight:700;margin-top:14px}
 .daily-error{line-height:1.5}
+/* Visible focus helps keyboard users identify the active control. */
 .btn:focus-visible,.daily-select:focus-visible,.daily-exercise:focus-within{outline:3px solid #d2c8ff;outline-offset:3px}
+/* On small phones, wrap exercise amounts beneath their names. */
 @media(max-width:420px){h1{font-size:30px}.daily-title{font-size:24px}.daily-verse{font-size:18px}.daily-exercise{flex-wrap:wrap}.daily-exercise-amount{width:100%;text-align:left;margin-left:31px}}

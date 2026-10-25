@@ -2,6 +2,8 @@
 // Content follows the calendar date in America/Chicago for a consistent daily experience.
 const TIME_ZONE = "America/Chicago";
 
+// Editorial configuration: verify KJV wording before editing these passages.
+// Array order and length determine the repeating calendar rotation.
 const VERSES = [
   { reference: "1 Corinthians 9:24", text: "Know ye not that they which run in a race run all, but one receiveth the prize? So run, that ye may obtain.", theme: "Purpose", reflection: "Choose one small action you can take with purpose today." },
   { reference: "Philippians 4:13", text: "I can do all things through Christ which strengtheneth me.", theme: "Strength", reflection: "Remember where your strength and hope are rooted." },
@@ -20,6 +22,7 @@ const VERSES = [
 ];
 
 // 0 = Sunday. A repeatable, beginner-friendly week with strength, cardio and recovery.
+// Each exercise has display amounts for both browser-selectable difficulty levels.
 const WORKOUTS = [
   { title: "Recovery and Reflection", focus: "Gentle recovery", minutes: "10–20", exercises: [
     { name: "Easy walk (optional)", beginner: "5–10 minutes", regular: "10–20 minutes" },
@@ -62,16 +65,23 @@ const WORKOUTS = [
   ] }
 ];
 
+// Accept an optional instant so tests can check date boundaries without changing the clock.
 export function getDailyContent(instant = new Date()) {
+  // Extract Chicago calendar fields first; this lets Intl handle daylight-saving changes.
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit"
   }).formatToParts(instant);
   const fields = Object.fromEntries(parts.map(part => [part.type, part.value]));
   const year = Number(fields.year), month = Number(fields.month), day = Number(fields.day);
+  // Convert the local calendar date into a stable integer day for the verse rotation.
+  // UTC here is date arithmetic, not the timezone used to choose today.
   const utcDay = Math.floor(Date.UTC(year, month - 1, day) / 86400000);
   const date = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  // Double modulo also gives a nonnegative array index for dates before the Unix epoch.
   const verse = VERSES[((utcDay % VERSES.length) + VERSES.length) % VERSES.length];
+  // Workouts repeat by weekday (Sunday = 0), independently of the passage rotation.
+  // videoUrl is currently always null; the browser renders only validated TikTok URLs.
   return {
     date, timeZone: TIME_ZONE,
     verse: { reference: verse.reference, text: verse.text, translation: "KJV" },
@@ -80,6 +90,7 @@ export function getDailyContent(instant = new Date()) {
   };
 }
 
+// Serve curated content without external requests; no-store allows a fresh date on reload.
 export default function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method && req.method !== "GET") {

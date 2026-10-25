@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import verseHandler from "../api/verse.js";
 import dailyHandler, { getDailyContent } from "../api/daily.js";
 
+// Minimal Vercel-style response double: capture status, headers and JSON without a server.
 function response() {
   return {
     statusCode: 200, headers: {}, body: null,
@@ -12,6 +13,7 @@ function response() {
   };
 }
 
+// These seven tests use Node built-ins; no live Bible API or browser is required.
 // Node's mock concurrency: keep fetch replacement tests non-concurrent.
 test("Daily plan is deterministic on the same Chicago date", () => {
   const a = getDailyContent(new Date("2026-10-25T06:00:00Z"));
@@ -22,6 +24,7 @@ test("Daily plan is deterministic on the same Chicago date", () => {
   assert.ok(a.workout.exercises.length > 0);
 });
 
+// In this October fixture Chicago is UTC-5; the two instants straddle local midnight.
 test("Daily plan respects local Chicago midnight and day of week", () => {
   const before = getDailyContent(new Date("2026-10-26T04:59:00Z"));
   const after = getDailyContent(new Date("2026-10-26T05:01:00Z"));
@@ -41,6 +44,7 @@ test("Daily endpoint responds to GET and rejects POST", () => {
   assert.equal(res.statusCode, 405);
 });
 
+// Replace global fetch to make provider tests repeatable; finally always restores it.
 test("Random verse endpoint returns verse from primary provider", async () => {
   const old = globalThis.fetch;
   globalThis.fetch = async () => ({ok:true,json:async()=>({reference:"John 3:16", text:"For God so loved the world"})});
@@ -70,6 +74,7 @@ test("Random verse endpoint tries fallback if primary fails", async () => {
   } finally { globalThis.fetch = old; }
 });
 
+// Suppress expected server logs while checking that private error details stay off the wire.
 test("Both providers failing returns HTTP 503 without leaking details", async () => {
   const old = globalThis.fetch;
   const log = console.error;
