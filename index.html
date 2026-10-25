@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Random KJV Verse</title>
   <meta name="description" content="Tap an NFC tag (or scan a QR) to receive a different KJV Bible verse each time.">
+  <!-- Shared appearance, including the daily card created by app.js. -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,6 +16,7 @@
       <p class="sub">Tap again anytime for another verse.</p>
     </header>
 
+    <!-- Keep ref/verse IDs and loadVerse() in sync with the browser controller. -->
     <section class="card" aria-live="polite">
       <div class="row">
         <div class="ref" id="ref">Ready</div>
@@ -32,8 +34,10 @@
     </section>
   </main>
 
+  <!-- Load after the markup so app.js can find the card and insert the daily plan. -->
   <script src="app.js"></script>
   <script>
+    // Share the displayed random verse, rather than the separate daily plan.
     // Share button
     const shareBtn = document.getElementById('shareBtn');
     shareBtn.addEventListener('click', async () => {
@@ -41,8 +45,10 @@
       const verse = document.getElementById('verse').textContent;
       const text = `${ref} — ${verse}`;
 
+      // Prefer the device share sheet; cancellation or rejection is quietly ignored.
       if (navigator.share) {
         try { await navigator.share({ title: "KJV Verse", text, url: window.location.href }); } catch {}
+      // Without native sharing, try copying; if clipboard access fails, show the text.
       } else {
         try {
           await navigator.clipboard.writeText(text);
