@@ -56,3 +56,29 @@ h1{margin:12px 0 6px;font-size:38px;letter-spacing:-.02em}
 }
 .note{margin-top:12px}
 .small{font-size:12px;color:var(--muted)}
+
+/* Daily word + workout (injected by app.js; no HTML edits required) */
+.daily-card{border-color:rgba(255,255,255,.20)}
+.daily-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.daily-eyebrow{font-size:11px;font-weight:800;letter-spacing:.09em;color:#d2c8ff}
+.daily-date,.daily-meta{font-size:12px;color:var(--muted)}
+.daily-title{font-size:28px;margin:12px 0 4px}
+.daily-reference{font-size:15px;margin:12px 0 4px;color:#d2c8ff}
+.daily-verse{font-size:20px;line-height:1.55;margin:8px 0 14px;padding:0 0 0 14px;border-left:3px solid #d2c8ff}
+.daily-reflection{line-height:1.55;color:var(--muted)}
+.daily-workout-heading{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:20px;padding-top:16px}
+.daily-workout-heading h3{margin:0;font-size:18px}
+.daily-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:18px 0 12px;font-size:14px}
+.daily-select{border:1px solid var(--line);border-radius:10px;background:#27273a;color:var(--text);padding:8px 12px;font:inherit}
+.daily-exercises{display:grid;gap:8px}
+.daily-exercise{display:flex;align-items:center;gap:12px;padding:11px;border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.daily-exercise input{width:19px;height:19px;accent-color:#c1b1ff;flex-shrink:0}
+.daily-exercise-name{flex:1;font-size:14px}
+.daily-exercise-amount{font-size:12px;color:var(--muted);text-align:right}
+.daily-exercise:has(input:checked) .daily-exercise-name{text-decoration:line-through;color:var(--muted)}
+.daily-progress{font-size:13px;font-weight:700;color:#d2c8ff}
+.daily-caution{font-size:12px;line-height:1.5;color:var(--muted);margin:14px 0 0}
+.daily-video{display:inline-block;color:#d2c8ff;font-weight:700;margin-top:14px}
+.daily-error{line-height:1.5}
+.btn:focus-visible,.daily-select:focus-visible,.daily-exercise:focus-within{outline:3px solid #d2c8ff;outline-offset:3px}
+@media(max-width:420px){h1{font-size:30px}.daily-title{font-size:24px}.daily-verse{font-size:18px}.daily-exercise{flex-wrap:wrap}.daily-exercise-amount{width:100%;text-align:left;margin-left:31px}}
