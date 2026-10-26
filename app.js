@@ -212,34 +212,43 @@ if (exerciseSpotlight && spotlightVideo) {
 }
 
 
-// Show the newest *published* NAS demonstration when the media host is ready.
-// This feed is independent of the daily workout-plan rotation and TikTok.
+// A separate published copy of the latest *finished* NAS video is placed in
+// GitHub's media folder; Vercel deploys it with the website. The NAS stays private.
+// The feed remains invisible until a publisher uploads both files.
 async function loadLatestNasVideo() {
   try {
-    const response = await fetch("/api/video", { cache: "no-store" });
+    const response = await fetch("/media/latest.json", { cache: "no-store" });
     if (!response.ok) return;
-    const videoInfo = await response.json();
-    if (!videoInfo.available || typeof videoInfo.videoUrl !== "string" ||
-        typeof videoInfo.title !== "string" || typeof videoInfo.date !== "string") return;
-
+    const data = await response.json();
+    const kinds = {
+      "chest-fly": { title: "Dumbbell Chest Fly", reference: "Galatians 6:9" },
+      "pull-ups": { title: "Pull Ups", reference: "Philippians 3:14" }
+    };
+    if (!data || typeof data.date !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(data.date) ||
+        !Object.hasOwn(kinds, data.slug)) return;
+    const actualDate = new Date(data.date + "T00:00:00Z");
+    if (!Number.isFinite(actualDate.getTime()) ||
+        actualDate.toISOString().slice(0, 10) !== data.date) return;
+    const details = kinds[data.slug];
     const card = el("section", "card exercise-spotlight");
     card.setAttribute("aria-label", "Latest Daily Lift exercise video");
-    card.append(el("p", "daily-eyebrow", "LATEST DAILY LIFT VIDEO · " + videoInfo.date));
-    card.append(el("h2", "", videoInfo.title));
+    card.append(el("p", "daily-eyebrow", "LATEST DAILY LIFT VIDEO · " + data.date));
+    card.append(el("h2", "", details.title));
     card.append(el("p", "spotlight-description", "NAS-generated exercise demonstration"));
     const player = el("video");
     player.controls = true;
     player.playsInline = true;
     player.preload = "metadata";
-    player.setAttribute("aria-label", videoInfo.title + " exercise demonstration");
-    player.src = videoInfo.videoUrl;
+    player.setAttribute("aria-label", details.title + " exercise demonstration");
+    player.src = "/media/daily-lift-latest.mp4?v=" + encodeURIComponent(data.date + "-" + data.slug);
     player.addEventListener("error", () => card.remove());
     card.append(player);
-    card.append(el("p", "spotlight-verse", videoInfo.reference + " · KJV"));
+    card.append(el("p", "spotlight-verse", details.reference + " · KJV"));
     const spotlight = document.getElementById("exerciseSpotlight");
     if (spotlight) spotlight.before(card);
     else if (verseCard) verseCard.before(card);
-  } catch { /* Storage not configured or unavailable: keep the existing site. */ }
+  } catch { /* No uploaded video yet: preserve the existing site. */ }
 }
 loadLatestNasVideo();
 
