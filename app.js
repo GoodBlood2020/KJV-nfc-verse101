@@ -220,31 +220,41 @@ async function loadLatestNasVideo() {
     const response = await fetch("/media/latest.json", { cache: "no-store" });
     if (!response.ok) return;
     const data = await response.json();
-    const kinds = {
-      "chest-fly": { title: "Dumbbell Chest Fly", reference: "Galatians 6:9" },
-      "pull-ups": { title: "Pull Ups", reference: "Philippians 3:14" }
-    };
+    // Imported MoveKit exercises are named by their manifest (not hard-coded).
     if (!data || typeof data.date !== "string" ||
         !/^\d{4}-\d{2}-\d{2}$/.test(data.date) ||
-        !Object.hasOwn(kinds, data.slug)) return;
+        typeof data.slug !== "string" ||
+        !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug) ||
+        data.slug.length > 64) return;
     const actualDate = new Date(data.date + "T00:00:00Z");
     if (!Number.isFinite(actualDate.getTime()) ||
         actualDate.toISOString().slice(0, 10) !== data.date) return;
-    const details = kinds[data.slug];
+    const fallback = {
+      "chest-fly": { title: "Dumbbell Chest Fly", reference: "Galatians 6:9" },
+      "dumbbell-chest-fly": { title: "Dumbbell Chest Fly", reference: "Galatians 6:9" },
+      "pull-ups": { title: "Pull Ups", reference: "Philippians 3:14" }
+    }[data.slug] || { title: data.slug.replace(/-/g, " "), reference: "Philippians 4:13" };
+    const title = typeof data.title === "string" && data.title.trim().length > 0 &&
+      data.title.length <= 80 ? data.title : fallback.title;
+    const reference = typeof data.reference === "string" &&
+      /^[1-3]?\s*[A-Za-z]+(?:\s+[A-Za-z]+)*\s+\d{1,3}:\d{1,3}(?:-\d{1,3})?$/.test(data.reference) &&
+      data.reference.length <= 48 ? data.reference : fallback.reference;
+    const cacheKey = typeof data.sha256 === "string" && /^[a-f0-9]{64}$/.test(data.sha256)
+      ? data.sha256 : data.date + "-" + data.slug;
     const card = el("section", "card exercise-spotlight");
     card.setAttribute("aria-label", "Latest Daily Lift exercise video");
     card.append(el("p", "daily-eyebrow", "LATEST DAILY LIFT VIDEO · " + data.date));
-    card.append(el("h2", "", details.title));
+    card.append(el("h2", "", title));
     card.append(el("p", "spotlight-description", "NAS-generated exercise demonstration"));
     const player = el("video");
     player.controls = true;
     player.playsInline = true;
     player.preload = "metadata";
-    player.setAttribute("aria-label", details.title + " exercise demonstration");
-    player.src = "/media/daily-lift-latest.mp4?v=" + encodeURIComponent(data.date + "-" + data.slug);
+    player.setAttribute("aria-label", title + " exercise demonstration");
+    player.src = "/media/daily-lift-latest.mp4?v=" + encodeURIComponent(cacheKey);
     player.addEventListener("error", () => card.remove());
     card.append(player);
-    card.append(el("p", "spotlight-verse", details.reference + " · KJV"));
+    card.append(el("p", "spotlight-verse", reference + " · KJV"));
     const spotlight = document.getElementById("exerciseSpotlight");
     if (spotlight) spotlight.before(card);
     else if (verseCard) verseCard.before(card);
