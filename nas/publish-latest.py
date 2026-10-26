@@ -21,8 +21,13 @@ OUTPUT = Path(os.getenv("DAILY_LIFT_OUTPUT", "/output"))
 TOKEN_FILE = Path(os.getenv("GITHUB_TOKEN_FILE", "/run/secrets/github_token"))
 VIDEO_PATH = "media/daily-lift-latest.mp4"
 MANIFEST_PATH = "media/latest.json"
-PATTERN = re.compile(r"^daily-lift-(\d{4}-\d{2}-\d{2})-(chest-fly|pull-ups)\.mp4$")
+PATTERN = re.compile(r"^daily-lift-(\d{4}-\d{2}-\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\.mp4$")
 POLL_SECONDS = 300
+MIN_FILE_AGE_SECONDS = 120
+REFERENCE_PATTERN = re.compile(r"^[1-3]?\s*[A-Za-z]+(?:\s+[A-Za-z]+)*\s+\d{1,3}:\d{1,3}(?:-\d{1,3})?$")
+KNOWN = {"chest-fly": ("Dumbbell Chest Fly", "Galatians 6:9"),
+         "dumbbell-chest-fly": ("Dumbbell Chest Fly", "Galatians 6:9"),
+         "pull-ups": ("Pull Ups", "Philippians 3:14")}
 # Keep GitHub as a bridge for short clips, not a long-term media warehouse.
 MAX_BYTES = 4 * 1024 * 1024
 
@@ -67,13 +72,17 @@ def write_file(path, raw, message, token):
 
 def candidate():
     found = []
+    now = time.time()
     for file in OUTPUT.glob("daily-lift-*.mp4"):
         match = PATTERN.fullmatch(file.name)
-        if match and file.is_file():
+        if match and file.is_file() and not file.is_symlink():
             try:
-                if file.stat().st_size > 0:
-                    found.append((match.group(1), file.stat().st_mtime, file, match.group(2)))
-            except OSError:
+                st = file.stat()
+                day = dt.date.fromisoformat(match.group(1))
+                if (day <= dt.date.today() and 0 < st.st_size <= MAX_BYTES and
+                        st.st_mtime <= now - MIN_FILE_AGE_SECONDS):
+                    found.append((match.group(1), st.st_mtime, file, match.group(2)))
+            except (OSError, ValueError):
                 pass
     return max(found, default=None, key=lambda item: (item[0], item[1]))
 
@@ -100,7 +109,24 @@ def publish():
         return
     raw = file.read_bytes()
     digest = hashlib.sha256(raw).hexdigest()
-    manifest = {"date": date, "slug": slug, "sha256": digest}
+    title, reference = KNOWN.get(slug, (slug.replace("-", " ").title(), "Philippians 4:13"))
+    sidecar = file.with_suffix(".json")
+    if sidecar.is_file() and 0 < sidecar.stat().st_size <= 4096:
+        try:
+            details = json.loads(sidecar.read_text(encoding="utf-8"))
+            if isinstance(details, dict) and details.get("date") == date and details.get("slug") == slug:
+                candidate_title = details.get("title")
+                candidate_reference = details.get("reference")
+                if (isinstance(candidate_title, str) and 1 <= len(candidate_title) <= 80 and
+                        not any(ord(c) < 32 for c in candidate_title)):
+                    title = candidate_title
+                if (isinstance(candidate_reference, str) and len(candidate_reference) <= 48 and
+                        REFERENCE_PATTERN.fullmatch(candidate_reference)):
+                    reference = candidate_reference
+        except (OSError, ValueError, UnicodeError):
+            pass
+    manifest = {"date": date, "slug": slug, "title": title,
+                "reference": reference, "sha256": digest}
     current = call(MANIFEST_PATH, token)
     if current and current.get("content") and current.get("encoding") == "base64":
         old = json.loads(base64.b64decode(current["content"]).decode("utf-8"))
