@@ -33,6 +33,9 @@ Daily video deep links are separate: `api/daily.js` currently returns `videoUrl:
 
 ## Exercise Spotlight (first NAS-rendered video)
 
+The first Dumbbell Chest Fly exercise spotlight links to its published TikTok post at `https://www.tiktok.com/t/ZPLAWS5aE`. This is a user-supplied TikTok short link; TikTok may redirect to a canonical post URL. The link belongs to this **exercise spotlight** only, not to the independently scheduled daily workout. Do not change `api/daily.js`'s `videoUrl` to this link unless the daily exercise actually matches.
+
+
 The homepage has an optional **Dumbbell Chest Fly** showcase, deliberately separate from the server-selected daily workout. The section is hidden automatically until the edited MP4 at `/media/daily-lift-chest-fly-test.mp4` is present and its metadata loads, so a missing file does not break the homepage.
 
 To finish publishing this first demo:
