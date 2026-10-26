@@ -1,63 +1,66 @@
-# Publishing NAS videos to Daily Lift
+# Zero-additional-storage-subscription NAS video publishing
 
-This is a **future publishing connection**, not an uploader. The website remains
-unchanged until a public, licensed MP4 and manifest have been uploaded and the
-Vercel environment variable below has been configured.
+Daily Lift can use the **existing** UGREEN NAS + GitHub + Vercel accounts.
+No Cloudflare R2 account, new cloud storage subscription, NAS port forwarding,
+or third-party video host is required.
 
-## Architecture
+## How it works
 
-1. UGREEN NAS `DailyLift-Private/Output/ReadyToPost` generates an MP4 using
-   non-root UID 1006 / GID 100.
-2. A separate, outbound-only uploader (to be configured) uploads the *finished*
-   MP4 to a dedicated Cloudflare R2 public-video bucket.
-3. **After the video upload succeeds**, the uploader replaces `latest.json`.
-4. The website's `/api/video` reads `latest.json` and builds a video URL
-   anchored to the configured public media domain.
-5. The browser shows "Latest Daily Lift video" when a valid manifest exists.
-   The existing Bible cards, daily workout, and original demo remain operational.
+1. The network-isolated NAS generator writes finished videos into
+   `DailyLift-Private/Output/ReadyToPost`, retaining originals privately.
+2. A **separate** non-root publisher container reads the most recent completed
+   MP4 and pushes a public copy to the existing GitHub repo using a fine-grained
+   GitHub access token restricted to `GoodBlood2020/KJV-nfc-verse101`.
+3. It updates **two files** on branch `main`:
+   - `media/daily-lift-latest.mp4` (one live file replaced daily)
+   - `media/latest.json` (date + known exercise slug)
+4. GitHub triggers an automatic Vercel deployment; the website loads the
+   latest manifest and displays the new video.
+5. If publishing hasn't been configured or fails, the website keeps working:
+   the daily workout and KJV verse are independent, and the existing static
+   Chest Fly spotlight stays available.
 
-## Vercel setting
-
-Set the **server-side** environment variable `DAILY_LIFT_MEDIA_BASE_URL` to the
-R2 bucket's public HTTPS custom domain (trailing slash optional), e.g.
-`https://media.example.com/`. Redeploy to apply the setting.
-
-Do not set this variable to an S3 API endpoint or a private URL. A Cloudflare
-R2 `r2.dev` address is development-only and rate-limited; use a custom domain
-for production. Leave the variable unset until the public host is ready.
-
-## Published object keys
-
-Video object, e.g.:
-`videos/daily-lift-2026-10-27-pull-ups.mp4`
-
-Latest manifest at bucket root: `latest.json`
-
+Manifest example:
 ```json
-{
-  "date": "2026-10-27",
-  "videoKey": "videos/daily-lift-2026-10-27-pull-ups.mp4"
-}
+{"date":"2026-10-27","slug":"pull-ups","sha256":"<hex sha256 of video>"}
 ```
+`sha256` is used by the publisher to skip unchanged videos; the website
+requires only `date` and `slug`. Allowed slugs: `chest-fly`, `pull-ups`.
 
-The API enforces this exact filename format and allows only `chest-fly`
-and `pull-ups` filenames. Scripture and exercise titles are kept in trusted
-website code rather than accepted from the remote manifest.
+## No automatic publishing until authorized
 
-When uploading `latest.json`, configure it with
-`Content-Type: application/json` and `Cache-Control: no-cache`, so clients can
-observe new versions. Upload MP4 with `Content-Type: video/mp4` and stable,
-immutable keys. Never publish a manifest pointing to an unfinished upload.
+Before enabling the publisher, **review the MoveKit license** and verify
+it expressly permits redistribution/public hosting of these edited sample MP4s.
+If it doesn't, use your own footage or obtain the correct license.
 
-## Important safety notes
+The publisher code is provided as `nas/publish-latest.py`. It is *not*
+deployed merely by merging this PR. It requires a local NAS read-only token
+file and an additional Docker Compose project.
 
-- Check that the actual MoveKit license authorizes redistribution or public
-  hosting of these **edited samples** before enabling public uploads. Do not
-  upload original, unedited source animations or private license documents.
-- Do not store Cloudflare access keys, upload tokens, or rclone.conf in GitHub.
-- Make a **separate** uploader container with outbound internet access and
-  read-only access to NAS output. Keep the FFmpeg generator network-isolated.
-- Use a bucket-scoped, least-privilege R2 credential; don't open inbound NAS
-  ports, grant access to the Docker socket, or use root to upload.
-- The website's rotating daily workout plan is independent of this latest
-  demonstration video. A Pull Ups video does not change Tuesday's workout plan.
+Steps after license approval:
+
+1. Create a fine-grained GitHub PAT with **Contents: Read and write**, scoped
+   to **only** `GoodBlood2020/KJV-nfc-verse101`. No admin/workflow permissions.
+   Use a reasonable expiration and plan token rotation.
+2. Store it only in a NAS private file readable by UID 1006; don't paste it
+   into GitHub files, Docker Compose, screenshots, or chat.
+3. Put `nas/publish-latest.py` in the private NAS automation folder and mount
+   it and the token read-only in a non-root publisher container. Mount
+   `ReadyToPost` read-only. The publisher needs outbound HTTPS only.
+4. Verify the upload logs, the new GitHub commit, and the Vercel deployment.
+   Existing `daily-lift-scheduled` should keep `network_mode: none`.
+
+## Limits and tradeoffs
+
+- GitHub is **not** intended as long-term streaming video storage. It recommends
+  a single Git object under 1 MB and enforces a 100 MB limit. Replacing the
+  same MP4 keeps the current branch small, but Git history still grows.
+  Track file sizes and repository growth; stop this approach if videos get
+  large, traffic is heavy, or the media license forbids publication.
+- Vercel's Hobby plan has usage and non-commercial restrictions. It may stop
+  serving or deploying beyond its limits. This setup is not a guarantee of
+  unlimited free hosting.
+- The NAS stays the master copy and archive; GitHub has **one public copy**
+  for viewers. Visitors do not directly connect to the NAS.
+- This does not post videos to TikTok. The website's daily workout-plan
+  rotation and the latest NAS video are separate features.
