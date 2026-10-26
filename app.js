@@ -196,5 +196,20 @@ async function loadDaily() {
   }
 }
 
+// Show the optional spotlight only when its edited MP4 has been uploaded.
+ // This prevents an empty player before the licensed media is published.
+const exerciseSpotlight = document.getElementById("exerciseSpotlight");
+const spotlightVideo = document.getElementById("spotlightVideo");
+if (exerciseSpotlight && spotlightVideo) {
+  spotlightVideo.addEventListener("loadedmetadata", () => {
+    exerciseSpotlight.hidden = false;
+  }, { once: true });
+  // 404/missing media leaves the card hidden; daily verses still work.
+  spotlightVideo.addEventListener("error", () => {
+    exerciseSpotlight.hidden = true;
+  });
+  spotlightVideo.load();
+}
+
 loadDaily();
 loadVerse();
