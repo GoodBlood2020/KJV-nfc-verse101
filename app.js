@@ -70,7 +70,7 @@ const verseCard = document.querySelector("main .card");
 if (verseCard) verseCard.before(dailyCard);
 const heading = document.querySelector(".hero h1");
 const intro = document.querySelector(".hero .sub");
-if (heading) heading.textContent = "Daily Lift";
+if (heading) heading.textContent = "DailyLift by DJ";
 if (intro) intro.textContent = "A daily KJV verse and approachable workout plan.";
 dailyCard.append(el("p", "daily-loading", "Loading today's verse and workout…"));
 
@@ -242,8 +242,8 @@ async function loadLatestNasVideo() {
     const cacheKey = typeof data.sha256 === "string" && /^[a-f0-9]{64}$/.test(data.sha256)
       ? data.sha256 : data.date + "-" + data.slug;
     const card = el("section", "card exercise-spotlight");
-    card.setAttribute("aria-label", "Latest Daily Lift exercise video");
-    card.append(el("p", "daily-eyebrow", "LATEST DAILY LIFT VIDEO · " + data.date));
+    card.setAttribute("aria-label", "Latest DailyLift by DJ exercise video");
+    card.append(el("p", "daily-eyebrow", "LATEST DAILYLIFT BY DJ VIDEO · " + data.date));
     card.append(el("h2", "", title));
     card.append(el("p", "spotlight-description", "NAS-generated exercise demonstration"));
     const player = el("video");
