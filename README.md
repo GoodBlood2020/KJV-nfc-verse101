@@ -31,6 +31,19 @@ The daily workout card includes a permanent **Follow @djephthah on TikTok** link
 
 Daily video deep links are separate: `api/daily.js` currently returns `videoUrl: null`, so a "Watch today's workout" link appears only after a verified public TikTok video URL is configured. Don't describe a profile link as a video of today's workout.
 
+## Exercise Spotlight (first NAS-rendered video)
+
+The homepage has an optional **Dumbbell Chest Fly** showcase, deliberately separate from the server-selected daily workout. The section is hidden automatically until the edited MP4 at `/media/daily-lift-chest-fly-test.mp4` is present and its metadata loads, so a missing file does not break the homepage.
+
+To finish publishing this first demo:
+1. Verify your specific MoveKit sample's license permits **public** website/social-media use. The download's `LICENSE.txt` links to MoveKit's paid-content agreement; confirm that the same grant applies to free samples before publishing.
+2. Export/download the **finished 8-second Daily Lift-branded MP4** from `DailyLift./Output/ReadyToPost` on the UGREEN NAS, not the original MoveKit animation.
+3. Upload the edited MP4 to the `media/` directory on this PR branch under the exact name `daily-lift-chest-fly-test.mp4` using GitHub's **Add file → Upload files** interface.
+4. Review the Vercel preview: the spotlight should display and the video should play. Check that the daily plan and random verse still work.
+5. Merge only after licensing, media presence, and preview are verified.
+
+Never upload raw purchased MoveKit library files or license keys into this public repository. The NAS remains the private source library. Future automation should use an appropriate licensed publishing route for finished videos rather than committing hundreds of video assets to Git history.
+
 ## Run tests
 
 Requires Node.js 20 or newer.
