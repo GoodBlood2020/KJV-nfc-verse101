@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Daily Lift | Faith + Fitness</title>
-  <meta name="description" content="Daily Lift — Faith + Fitness. A daily KJV verse and approachable workout plan. Read scripture, move with purpose, and track your progress.">
+  <title>DailyLift by DJ | Faith + Fitness</title>
+  <link rel="canonical" href="https://dailylift-by-dj.vercel.app/">
+  <meta name="description" content="DailyLift by DJ — Faith + Fitness. A daily KJV verse and approachable workout plan. Read scripture, move with purpose, and track your progress.">
   <!-- Shared appearance, including the daily card created by app.js. -->
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -12,7 +13,7 @@
   <main class="wrap">
     <header class="hero">
       <div class="pill">FAITH + FITNESS</div>
-      <h1>Daily Lift</h1>
+      <h1>DailyLift by DJ</h1>
       <p class="sub">A daily KJV verse and approachable workout plan.</p>
     </header>
 
@@ -64,7 +65,7 @@
 
       // Prefer the device share sheet; cancellation or rejection is quietly ignored.
       if (navigator.share) {
-        try { await navigator.share({ title: "Daily Lift | KJV Verse", text, url: window.location.href }); } catch {}
+        try { await navigator.share({ title: "DailyLift by DJ | KJV Verse", text, url: window.location.href }); } catch {}
       // Without native sharing, try copying; if clipboard access fails, show the text.
       } else {
         try {
