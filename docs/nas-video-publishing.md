@@ -29,15 +29,13 @@ requires only `date` and `slug`. Allowed slugs: `chest-fly`, `pull-ups`.
 
 ## No automatic publishing until authorized
 
-Before enabling the publisher, **review the MoveKit license** and verify
-it expressly permits redistribution/public hosting of these edited sample MP4s.
-If it doesn't, use your own footage or obtain the correct license.
+**License verified on October 26, 2026:** MoveKit's own [free sample page](https://movekit.com/free-sample) explicitly applies the v1.0 license to the two free sample clips (Dumbbell Chest Fly and Pull Ups) and allows website use, social-video use, self-hosting, and conventional edits such as adding overlays. The [binding license](https://movekit.com/license) prohibits publishing original raw assets as downloadable stock files. Publish only the finished branded MP4s as part of the Daily Lift site, never the unedited MP4s, posters, metadata, download ZIP, or license identifiers.
 
 The publisher code is provided as `nas/publish-latest.py`. It is *not*
 deployed merely by merging this PR. It requires a local NAS read-only token
 file and an additional Docker Compose project.
 
-Steps after license approval:
+Steps to activate the publisher:
 
 1. Create a fine-grained GitHub PAT with **Contents: Read and write**, scoped
    to **only** `GoodBlood2020/KJV-nfc-verse101`. No admin/workflow permissions.
