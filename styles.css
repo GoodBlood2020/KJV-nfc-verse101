@@ -88,6 +88,13 @@ h1{margin:12px 0 8px;font-size:clamp(36px,8vw,46px);letter-spacing:-.045em;line-
 .daily-tiktok-profile:focus-visible{outline:3px solid #d2c8ff;outline-offset:3px}
 .daily-video{display:inline-block;color:#d2c8ff;font-weight:700;margin-top:14px}
 .daily-error{line-height:1.5}
+
+/* Exercise Spotlight is separate from the rotating daily workout. */
+.exercise-spotlight[hidden]{display:none}
+.exercise-spotlight h2{font-size:23px;margin:10px 0 4px;letter-spacing:-.02em}
+.spotlight-description{color:var(--muted);font-size:14px;line-height:1.5}
+.exercise-spotlight video{display:block;width:100%;max-width:360px;aspect-ratio:9/16;object-fit:contain;background:#0b0b10;border-radius:12px;margin:16px auto;border:1px solid var(--line)}
+.spotlight-verse{color:#d2c8ff;margin:16px 0 6px}
 /* Visible focus helps keyboard users identify the active control. */
 .btn:focus-visible,.daily-select:focus-visible,.daily-exercise:focus-within{outline:3px solid #d2c8ff;outline-offset:3px}
 /* On small phones, wrap exercise amounts beneath their names. */
