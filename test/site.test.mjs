@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import verseHandler from "../api/verse.js";
 import dailyHandler, { getDailyContent } from "../api/daily.js";
 
@@ -97,4 +98,16 @@ test("Verse endpoint rejects POST without calling external services", async () =
     await verseHandler({method:"POST"}, res);
     assert.equal(res.statusCode, 405);
   } finally { globalThis.fetch = old; }
+});
+
+// Prevent legacy first-video test content from returning alongside the NAS feed.
+test("Homepage uses only the rotating NAS exercise spotlight", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const js = readFileSync(new URL("../app.js", import.meta.url), "utf8");
+  assert.doesNotMatch(html, /exerciseSpotlight|daily-lift-chest-fly-test\.mp4|FIRST VIDEO TEST/i);
+  assert.doesNotMatch(js, /getElementById\("exerciseSpotlight"\)/);
+  assert.match(js, /\/media\/latest\.json/);
+  assert.match(js, /\/media\/daily-lift-latest\.mp4/);
+  assert.match(js, /Explore more exercises on TikTok/);
+  assert.match(js, /Watch this exercise on TikTok/);
 });
