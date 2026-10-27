@@ -101,7 +101,7 @@ h1{margin:12px 0 8px;font-size:clamp(36px,8vw,46px);letter-spacing:-.045em;line-
 @media(max-width:420px){h1{font-size:36px}.daily-title{font-size:24px}.daily-verse{font-size:18px}.daily-exercise{flex-wrap:wrap}.daily-exercise-amount{width:100%;text-align:left;margin-left:31px}}
 
 /* DailyLift Studio accent overrides — generated; edit through the Studio. */
-:root { --studio-accent: #d2f477; }
+:root { --studio-accent: #99c8e3; }
 .hero .pill,.daily-eyebrow,.daily-reference,.daily-progress,.daily-video,.spotlight-verse { color:var(--studio-accent); }
 .daily-verse { border-left-color:var(--studio-accent); }
 .daily-tiktok-profile { border-color:var(--studio-accent); }
