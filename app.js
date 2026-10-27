@@ -157,14 +157,6 @@ function renderDaily(data) {
 
   dailyCard.append(el("p", "daily-caution", "Move at a comfortable pace. Rest as needed and stop if you feel pain or dizziness. Adjust exercises to your abilities."));
 
-  // Link to the creator's profile separately from any individual daily workout video.
-  // A profile link is always available; videoUrl remains empty until a matching video is chosen.
-  const creatorLink = el("a", "daily-tiktok-profile", "Follow @djephthah on TikTok");
-  creatorLink.href = "https://www.tiktok.com/@djephthah";
-  creatorLink.target = "_blank";
-  creatorLink.rel = "noopener noreferrer";
-  dailyCard.append(creatorLink);
-
   // Only offer HTTPS TikTok links. Malformed or other-host links are silently omitted.
   if (typeof data.videoUrl === "string" && data.videoUrl) {
     try {
@@ -195,22 +187,6 @@ async function loadDaily() {
     dailyCard.append(retry);
   }
 }
-
-// Show the optional spotlight only when its edited MP4 has been uploaded.
- // This prevents an empty player before the licensed media is published.
-const exerciseSpotlight = document.getElementById("exerciseSpotlight");
-const spotlightVideo = document.getElementById("spotlightVideo");
-if (exerciseSpotlight && spotlightVideo) {
-  spotlightVideo.addEventListener("loadedmetadata", () => {
-    exerciseSpotlight.hidden = false;
-  }, { once: true });
-  // 404/missing media leaves the card hidden; daily verses still work.
-  spotlightVideo.addEventListener("error", () => {
-    exerciseSpotlight.hidden = true;
-  });
-  spotlightVideo.load();
-}
-
 
 // A separate published copy of the latest *finished* NAS video is placed in
 // GitHub's media folder; Vercel deploys it with the website. The NAS stays private.
@@ -255,10 +231,32 @@ async function loadLatestNasVideo() {
     player.addEventListener("error", () => card.remove());
     card.append(player);
     card.append(el("p", "spotlight-verse", reference + " · KJV"));
-    const spotlight = document.getElementById("exerciseSpotlight");
-    if (spotlight) spotlight.before(card);
-    else if (verseCard) verseCard.before(card);
-  } catch { /* No uploaded video yet: preserve the existing site. */ }
+
+    // Do not link today's exercise to the legacy Chest Fly TikTok post.
+    // A video-specific link appears only if the NAS manifest supplies a valid
+    // TikTok URL. Otherwise the link explicitly opens DJ's creator profile.
+    let tiktokHref = "https://www.tiktok.com/@djephthah";
+    let tiktokLabel = "Explore more exercises on TikTok";
+    if (typeof data.tiktokUrl === "string" && data.tiktokUrl.length <= 300) {
+      try {
+        const tiktokUrl = new URL(data.tiktokUrl);
+        if (tiktokUrl.protocol === "https:" &&
+            (tiktokUrl.hostname === "tiktok.com" || tiktokUrl.hostname.endsWith(".tiktok.com"))) {
+          tiktokHref = tiktokUrl.href;
+          tiktokLabel = "Watch this exercise on TikTok";
+        }
+      } catch { /* Ignore invalid video links. */ }
+    }
+    const tiktokLink = el("a", "daily-tiktok-profile", tiktokLabel);
+    tiktokLink.href = tiktokHref;
+    tiktokLink.target = "_blank";
+    tiktokLink.rel = "noopener noreferrer";
+    card.append(tiktokLink);
+
+    // The live feed is the only exercise video spotlight on the page.
+    // Insert it ahead of the random-verse card after the daily plan.
+    if (verseCard) verseCard.before(card);
+  } catch { /* No uploaded video yet: leave the latest video absent. */ }
 }
 loadLatestNasVideo();
 
