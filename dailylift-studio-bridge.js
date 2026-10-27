@@ -13,4 +13,33 @@
  }
  const style=document.createElement('style');style.textContent=`:root{--bg:${t.background};--card:${t.card};--text:${t.text};--radius:${t.radius}px;--studio-accent:${t.accent}}.hero .pill,.daily-eyebrow,.daily-reference,.daily-progress,.daily-video,.spotlight-verse{color:var(--studio-accent)}.daily-verse{border-left-color:var(--studio-accent)}.daily-tiktok-profile{border-color:var(--studio-accent)}.daily-exercise input{accent-color:var(--studio-accent)}`;
  document.head.append(style);
+ const extra=c.extras||{};
+ if(extra&&typeof extra==='object'){
+  const hero=document.querySelector('.hero');
+  if(hero){
+   hero.querySelectorAll('[data-studio-element]').forEach(n=>n.remove());
+   if(['centered','split'].includes(extra.layout)){
+     const style=document.createElement('style');
+     style.dataset.studioElement='layout';
+     style.textContent=extra.layout==='centered'?'.hero{text-align:center}.hero .sub{margin-left:auto;margin-right:auto}':'.hero{border-left:5px solid var(--studio-accent);padding-left:24px}';
+     document.head.append(style);
+   }
+   if(typeof extra.announcement==='string'&&extra.announcement.trim()){
+     const notice=document.createElement('p');notice.dataset.studioElement='announcement';notice.textContent='📢 '+extra.announcement.slice(0,180);notice.style.cssText='margin:12px 0;font-weight:700;color:var(--studio-accent)';hero.prepend(notice);
+   }
+   if(typeof extra.heroImage==='string'&&/^data:image\/(jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(extra.heroImage)&&extra.heroImage.length<160000){
+     const img=document.createElement('img');img.dataset.studioElement='image';img.alt='DailyLift homepage photo';img.src=extra.heroImage;img.style.cssText='display:block;max-height:340px;max-width:100%;width:auto;object-fit:cover;border-radius:var(--radius);margin:14px 0';hero.append(img);
+   }
+   if(typeof extra.buttonLabel==='string'&&extra.buttonLabel&&typeof extra.buttonUrl==='string'&&(extra.buttonUrl.startsWith('/')&&!extra.buttonUrl.startsWith('//')||/^https:\/\//.test(extra.buttonUrl))){
+     const link=document.createElement('a');link.dataset.studioElement='button';link.textContent=extra.buttonLabel.slice(0,60);link.href=extra.buttonUrl;link.rel='noopener noreferrer';link.style.cssText='display:inline-block;margin:12px 0;padding:10px 16px;border-radius:10px;background:var(--studio-accent);color:var(--bg);font-weight:700';hero.append(link);
+   }
+   if((typeof extra.sectionTitle==='string'&&extra.sectionTitle)||(typeof extra.sectionText==='string'&&extra.sectionText)){
+     const block=document.createElement('section');block.dataset.studioElement='section';block.className='card';block.setAttribute('aria-label','DailyLift introduction');
+     if(extra.sectionTitle){const h=document.createElement('h2');h.textContent=extra.sectionTitle.slice(0,120);block.append(h)}
+     if(extra.sectionText){const p=document.createElement('p');p.textContent=extra.sectionText.slice(0,500);block.append(p)}
+     hero.after(block);
+   }
+  }
+ }
+
 }catch{/* Site remains usable if Studio is temporarily unavailable. */}})();
