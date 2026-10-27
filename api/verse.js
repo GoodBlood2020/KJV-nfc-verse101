@@ -35,11 +35,15 @@ async function requestJson(url) {
 // bible-api.com may return top-level text or a verses array; normalize both shapes.
 async function primaryVerse() {
   const data = await requestJson("https://bible-api.com/data/kjv/random");
+  const randomVerse = data.random_verse;
   const verses = Array.isArray(data.verses) ? data.verses : [];
   const reference = (typeof data.reference === "string" && data.reference.trim()) ||
+    (randomVerse?.book && randomVerse?.chapter && randomVerse?.verse
+      ? `${randomVerse.book} ${randomVerse.chapter}:${randomVerse.verse}` : "") ||
     (verses[0]?.book_name && verses[0]?.chapter && verses[0]?.verse
       ? `${verses[0].book_name} ${verses[0].chapter}:${verses[0].verse}` : "");
   const text = (typeof data.text === "string" && data.text.trim()) ||
+    (typeof randomVerse?.text === "string" && randomVerse.text.trim()) ||
     verses.map(verse => verse.text || "").join(" ").trim();
   if (!reference || !text) throw new Error("Primary provider supplied an invalid verse");
   return { reference, text, translation: "KJV", source: "bible-api.com" };
