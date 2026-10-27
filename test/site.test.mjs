@@ -104,10 +104,10 @@ test("Verse endpoint rejects POST without calling external services", async () =
 test("Homepage uses only the rotating NAS exercise spotlight", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const js = readFileSync(new URL("../app.js", import.meta.url), "utf8");
-  assert.doesNotMatch(html, /exerciseSpotlight|daily-lift-chest-fly-test\\.mp4|FIRST VIDEO TEST/i);
-  assert.doesNotMatch(js, /getElementById\\("exerciseSpotlight"\\)/);
-  assert.match(js, /\/media\/latest\\.json/);
-  assert.match(js, /\/media\/daily-lift-latest\\.mp4/);
+  assert.doesNotMatch(html, /exerciseSpotlight|daily-lift-chest-fly-test\.mp4|FIRST VIDEO TEST/i);
+  assert.doesNotMatch(js, /getElementById\("exerciseSpotlight"\)/);
+  assert.match(js, /\/media\/latest\.json/);
+  assert.match(js, /\/media\/daily-lift-latest\.mp4/);
   assert.match(js, /Explore more exercises on TikTok/);
   assert.match(js, /Watch this exercise on TikTok/);
 });
