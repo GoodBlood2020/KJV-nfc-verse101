@@ -27,7 +27,7 @@
    if(typeof extra.announcement==='string'&&extra.announcement.trim()){
      const notice=document.createElement('p');notice.dataset.studioElement='announcement';notice.textContent='📢 '+extra.announcement.slice(0,180);notice.style.cssText='margin:12px 0;font-weight:700;color:var(--studio-accent)';hero.prepend(notice);
    }
-   if(typeof extra.heroImage==='string'&&/^data:image\/(jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(extra.heroImage)&&extra.heroImage.length<160000){
+   if(typeof extra.heroImage==='string'&&((/^data:image\/(?:jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(extra.heroImage)&&extra.heroImage.length<160000)||(()=>{try{const u=new URL(extra.heroImage);return u.protocol==='https:'&&!u.search&&!u.hash&&['dailylift-by-dj.vercel.app','dj-personal-training.vercel.app'].includes(u.hostname)&&/\.(?:jpe?g|png|webp)$/i.test(u.pathname)}catch{return false}})())){
      const img=document.createElement('img');img.dataset.studioElement='image';img.alt='DailyLift homepage photo';img.src=extra.heroImage;img.style.cssText='display:block;max-height:340px;max-width:100%;width:auto;object-fit:cover;border-radius:var(--radius);margin:14px 0';hero.append(img);
    }
    if(typeof extra.buttonLabel==='string'&&extra.buttonLabel&&typeof extra.buttonUrl==='string'&&(extra.buttonUrl.startsWith('/')&&!extra.buttonUrl.startsWith('//')||/^https:\/\//.test(extra.buttonUrl))){
