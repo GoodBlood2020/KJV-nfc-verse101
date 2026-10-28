@@ -41,6 +41,15 @@
    }
   }
  }
+ // Section editor rearranges existing DOM nodes only; verse/workout scripts are untouched.
+ const order=extra.sectionOrder;
+ const allowed=['intro','workout','verse'];
+ if(Array.isArray(order)&&order.length===allowed.length&&new Set(order).size===allowed.length&&allowed.every(x=>order.includes(x))){
+  const main=document.querySelector('main.wrap'),footerNote=main?.querySelector('section.small.note');
+  const elements={intro:main?.querySelector('[data-studio-element="section"]'),workout:main?.querySelector('.daily-card'),verse:main?.querySelector('section.card:not(.daily-card):not([data-studio-element])')};
+  if(main)for(const id of order){const node=elements[id];if(node&&node.parentElement===main)main.insertBefore(node,footerNote||null)}
+ }
+
 
 }catch{/* Site remains usable if Studio is temporarily unavailable. */}})();
 /* Anonymous homepage analytics: no cookies, identifiers or health information. */
