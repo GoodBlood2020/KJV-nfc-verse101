@@ -43,3 +43,5 @@
  }
 
 }catch{/* Site remains usable if Studio is temporarily unavailable. */}})();
+/* Anonymous homepage analytics: no cookies, identifiers or health information. */
+(()=>{try{const key='dailylift-studio-homeview-v1';if(sessionStorage.getItem(key))return;fetch('https://dailylift-studio-independent.vercel.app/api/public/pageview',{method:'POST',mode:'cors',keepalive:true,headers:{'Content-Type':'text/plain'},body:JSON.stringify({site:'daily',page:'/'})}).then(r=>{if(r.ok)sessionStorage.setItem(key,'1')}).catch(()=>{})}catch{}})();
