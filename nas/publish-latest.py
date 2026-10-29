@@ -18,6 +18,9 @@ import urllib.request
 REPO = "GoodBlood2020/KJV-nfc-verse101"
 BASE = f"https://api.github.com/repos/{REPO}/contents/"
 OUTPUT = Path(os.getenv("DAILY_LIFT_OUTPUT", "/output"))
+# Optional private optimized copies. When configured, do not publish a raw
+# daily MP4 while waiting for its finished TikTok layout copy.
+OPTIMIZED_OUTPUT = Path(os.environ["DAILY_LIFT_OPTIMIZED_DIR"]) if os.getenv("DAILY_LIFT_OPTIMIZED_DIR") else None
 TOKEN_FILE = Path(os.getenv("GITHUB_TOKEN_FILE", "/run/secrets/github_token"))
 VIDEO_PATH = "media/daily-lift-latest.mp4"
 MANIFEST_PATH = "media/latest.json"
@@ -107,7 +110,20 @@ def publish():
     if size > MAX_BYTES:
         print(f"Skipped {file.name}: {size} bytes exceeds the 4 MiB safety cap.", flush=True)
         return
-    raw = file.read_bytes()
+    public_file = file
+    if OPTIMIZED_OUTPUT is not None:
+        # Strict mode: a missing optimized output must NOT publish an old layout.
+        public_file = OPTIMIZED_OUTPUT / file.name
+        if not public_file.is_file() or public_file.is_symlink():
+            print(f"Waiting for optimized video: {file.name}", flush=True)
+            return
+        optimized_stat = public_file.stat()
+        if (optimized_stat.st_mtime < file.stat().st_mtime or
+                optimized_stat.st_mtime > time.time() - MIN_FILE_AGE_SECONDS or
+                not 1000 <= optimized_stat.st_size <= MAX_BYTES):
+            print(f"Waiting for finished optimized video: {file.name}", flush=True)
+            return
+    raw = public_file.read_bytes()
     digest = hashlib.sha256(raw).hexdigest()
     title, reference = KNOWN.get(slug, (slug.replace("-", " ").title(), "Philippians 4:13"))
     sidecar = file.with_suffix(".json")
@@ -127,6 +143,8 @@ def publish():
             pass
     manifest = {"date": date, "slug": slug, "title": title,
                 "reference": reference, "sha256": digest}
+    if OPTIMIZED_OUTPUT is not None:
+        manifest["layoutVersion"] = "compact-v3"
     current = call(MANIFEST_PATH, token)
     if current and current.get("content") and current.get("encoding") == "base64":
         old = json.loads(base64.b64decode(current["content"]).decode("utf-8"))
@@ -136,7 +154,7 @@ def publish():
 
     # Upload video FIRST; update manifest only after successful video upload.
     # Vercel deploys on both commits but eventually serves the matched pair.
-    print(f"Uploading finished {file.name} to GitHub...", flush=True)
+    print(f"Uploading {'optimized ' if OPTIMIZED_OUTPUT is not None else ''}finished {file.name} to GitHub...", flush=True)
     write_file(VIDEO_PATH, raw, f"Publish Daily Lift video for {date} ({slug})", token)
     write_file(MANIFEST_PATH, json.dumps(manifest, separators=(",", ":")).encode("utf-8"),
                f"Show Daily Lift video for {date} ({slug})", token)
