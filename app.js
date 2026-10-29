@@ -291,7 +291,7 @@ async function loadLatestExercisePreview() {
     player.append(video, bar);
     card.append(player);
     card.append(el("p", "spotlight-verse", reference + " · KJV"));
-    card.append(el("p", "spotlight-description", "Watch this exercise here. Posting downloads are available only in your signed-in Studio workspace."));
+
 
     // Only link to a specific TikTok video when the manifest supplies a valid
     // link; otherwise show the creator profile. No MP4 URLs are exposed.
