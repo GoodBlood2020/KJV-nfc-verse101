@@ -1,14 +1,16 @@
-# DailyLift public media — STILL IMAGES ONLY
+# DailyLift public watch video and private posting originals
 
-This folder is deployed to the public DailyLift by DJ website and is accessible to anyone with a link or NFC tag.
+This folder is deployed to the public DailyLift by DJ website and can be accessed by NFC-tag visitors.
 
-NEVER commit, upload or publish MP4, WebM, MOV, source exercise footage, purchased exercise assets or posting-ready NAS videos here.
+- `latest.json`: date, exercise title, slug, scripture reference and checksum.
+- `daily-lift-latest.mp4`: public **watching** copy of the current workout. The website uses custom controls **without a Download button**.
+- `exercise-preview.svg`: fallback decorative illustration, not the video.
+- `daily-lift-chest-fly-test.mp4`: legacy test video not deployed; redirects to illustration.
 
-- `latest.json` holds non-sensitive public daily exercise metadata (title, date, verse reference, slug, checksum).
-- `exercise-preview.svg` is a static illustrated image, not footage from the private NAS.
-- Posting-ready video stays on the UGREEN NAS. The Studio NAS media workflows remain owner-authenticated.
-- The two known legacy MP4 URLs redirect to the SVG through `vercel.json`.
+**Security limitation:** Any browser that can watch the public MP4 receives its bytes. Hiding Download in the player is only a user-interface choice, not DRM and not a guarantee that a visitor cannot save or record the video. Avoid uploading confidential or exclusively licensed source footage.
 
-**Urgent NAS operator action:** Update the copy of `nas/publish-latest.py` mounted in the currently running GitHub publisher container and restart only that publisher. This GitHub source change does not update an existing NAS container. Until then, pause only the public GitHub uploader or revoke its fine-grained Contents write token so it cannot re-upload tomorrow's MP4. Preserve the generator, archive, NAS catalog and Studio.
+The original NAS video files, NAS catalog and owner posting downloads are separate from the public watching copy. Use the signed-in DailyLift Studio TikTok workspace to download a private NAS video where the existing 3.5 MB / three-minute preview transfer supports it.
 
-Previously committed MP4 objects may remain accessible in public Git history and cached copies. Removing files from the current branch cannot revoke those copies.
+The NAS GitHub publisher source in `nas/publish-latest.py` again publishes a public watching copy plus matching manifest so today's video changes automatically. The script on the running NAS must be checked separately: updating the GitHub script does not update an already-mounted container file.
+
+Older historical clips may remain accessible via GitHub history or caches.

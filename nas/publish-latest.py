@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Publish only public *metadata* about the newest finished DailyLift video.
+"""Publish the newest finished Daily Lift MP4 to the existing GitHub repository.
 
-Posting-ready MP4 files stay on the NAS and are accessed via private owner workflows.
-This script is not the video generator. Update the copy installed on the NAS to
-apply this security change; changing GitHub alone cannot update a live container.
+Optional standalone NAS uploader: this script is NOT run by the video generator.
+Requires a fine-grained GitHub token stored in a read-only local file.
 """
 import base64
 import datetime as dt
@@ -20,6 +19,7 @@ REPO = "GoodBlood2020/KJV-nfc-verse101"
 BASE = f"https://api.github.com/repos/{REPO}/contents/"
 OUTPUT = Path(os.getenv("DAILY_LIFT_OUTPUT", "/output"))
 TOKEN_FILE = Path(os.getenv("GITHUB_TOKEN_FILE", "/run/secrets/github_token"))
+VIDEO_PATH = "media/daily-lift-latest.mp4"
 MANIFEST_PATH = "media/latest.json"
 PATTERN = re.compile(r"^daily-lift-(\d{4}-\d{2}-\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\.mp4$")
 POLL_SECONDS = 300
@@ -130,14 +130,17 @@ def publish():
     current = call(MANIFEST_PATH, token)
     if current and current.get("content") and current.get("encoding") == "base64":
         old = json.loads(base64.b64decode(current["content"]).decode("utf-8"))
-        if old == manifest:
+        # Recover public playback if the MP4 was removed while retaining its manifest.
+        if old == manifest and remote_sha(VIDEO_PATH, token):
             return
 
-    # SECURITY: never upload video bytes to this public repository.
-    # The NAS remains the only store for posting-ready MP4 files.
+    # Upload video FIRST; update manifest only after successful video upload.
+    # Vercel deploys on both commits but eventually serves the matched pair.
+    print(f"Uploading finished {file.name} to GitHub...", flush=True)
+    write_file(VIDEO_PATH, raw, f"Publish Daily Lift video for {date} ({slug})", token)
     write_file(MANIFEST_PATH, json.dumps(manifest, separators=(",", ":")).encode("utf-8"),
-               f"Update public exercise metadata for {date} ({slug})", token)
-    print("Published public metadata only; private MP4 never uploaded.", flush=True)
+               f"Show Daily Lift video for {date} ({slug})", token)
+    print("Published latest.mp4 and latest.json. Check Vercel deployment.", flush=True)
 
 
 if __name__ == "__main__":

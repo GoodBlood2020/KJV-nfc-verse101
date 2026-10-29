@@ -1,28 +1,25 @@
-# DailyLift private posting and public image preview
+# DailyLift public playback and private owner posting
 
-## Security boundary
+## The experience
 
-- Private NAS: finished, posting-ready MP4 files stay on the UGREEN NAS.
-- Private Studio: the owner-signed-in `/tiktok` and `/media` workflows request temporary NAS previews through protected `/api/nas/preview/*` endpoints. These previews may be reduced size and are NOT verified original-size posting downloads.
-- Public website and NFC visitors: the image `media/exercise-preview.svg`, exercise title, date, verse, and optional TikTok profile link. The public page no longer embeds MP4.
-- The public `media/latest.json` contains metadata only. Older GitHub commits may still contain MP4 blobs.
+**Visitors via web/NFC:** Watch today's exercise MP4 with Play, Pause, Seek and Sound controls. The website does not display a public Download button or browser-native video controls. It also shows the daily workout, KJV verse, and TikTok profile link.
 
-## Required NAS publisher change (urgent)
+**Owner via signed-in Studio:** The private NAS Video Library and TikTok Posting Workspace provide authenticated preview and, for compatible clips, a private download action. The preview bridge currently supports files up to 3.5 MB and links expire after three minutes; larger originals require a separate NAS-side export. The UGREEN NAS remains the source for original posting-ready videos.
 
-The repository version of `nas/publish-latest.py` now uploads public metadata JSON ONLY, and never writes video bytes into GitHub. **This change does not propagate to a script already mounted into a running NAS container.** The old uploader polls every five minutes and may publish another MP4 when the selected exercise or date changes.
+## Actual limits of download protection
 
-1. In UGREEN NAS, identify the separate DailyLift GitHub public video publisher Docker container/Compose stack. Do not stop the generator, NAS media catalog, verified archive or TikTok workspace.
-2. Pause only that GitHub MP4 uploader before another daily upload, OR revoke the uploader's fine-grained GitHub Contents write token. Do not expose or paste that token.
-3. Replace its mounted `publish-latest.py` from the current GitHub `nas/publish-latest.py` file, preserving the original read-only NAS paths and mounts.
-4. Restart ONLY the metadata publisher. Look for log text: `Published public metadata only; private MP4 never uploaded.` Verify the installed script has no video-upload call.
-5. After the next video selection, check GitHub public `media/`: no MP4 should be added. The live website should show the illustrated exercise card, and old MP4 paths should redirect to the SVG.
+This is **not DRM**. A browser must receive video bytes to play them. A visitor with developer tools, a downloader, or screen recording software can still save the public watching copy. A Download-free interface makes casual saving less obvious, but does not make access owner-exclusive. For stronger protection in the future, use a separately exported low-resolution / visibly watermarked public preview and retain the full-resolution original on NAS, or consider DRM streaming. DRM still cannot block screen recording completely.
 
-## Historical copies and future access
+## NAS publishing and continuity
 
-Removing the MP4 files from the current branch does not erase them from public Git history, older Vercel deployments, third-party caches or recipients' devices. Consider making the GitHub repository private (after checking the Vercel Git connection) and rotating the old uploader token. Even a private repository does not protect an MP4 if Vercel serves it at a public URL.
+`nas/publish-latest.py` generates a matching manifest and uploads the current public watching MP4. It is a separate non-root publisher; it does not alter NAS originals or the generator/archive. This source update **does not update** the version mounted into a running NAS container. Check the installed version before relying on it to publish tomorrow's exercise. The script must retain its original NAS read-only mount and outbound HTTPS only.
 
-The private Studio NAS preview is already behind owner login. A true full-resolution, posting-ready **download button** requires an authenticated NAS-side export path and remains a separate feature to verify; this update does not claim to have implemented one.
+The live website loads `media/latest.json` and `media/daily-lift-latest.mp4`. When video publication fails, the daily KJV verse and workout plan remain independent. A legacy `media/daily-lift-chest-fly-test.mp4` route redirects to the illustration and is no longer offered as a public video.
 
-## Unchanged workflows
+## Historical media and sharing
 
-NAS generation, read-only source mounts, archive receipts, private video catalog, TikTok workspace, and the verse/daily plan remain separate and unchanged. The new public site uses metadata and a static image only.
+The public repository contains today's public viewing copy and can retain older clips in Git history. Anyone can fetch public Git media independently from the UI. Never assume a public video file is inaccessible just because the video player lacks a Download button.
+
+## Preserved automation
+
+DailyLift v2 generator, NAS scheduled jobs, archive receipts, NAS catalog, private previews, TikTok posting workspace, and trainer website/enrollment remain separate.

@@ -100,20 +100,27 @@ test("Verse endpoint rejects POST without calling external services", async () =
   } finally { globalThis.fetch = old; }
 });
 
-// Prevent legacy first-video test content from returning alongside the NAS feed.
-test("Homepage serves metadata and static preview, never public MP4", () => {
+// Public site shows a watchable MP4 with no download button in the UI.
+// It does NOT guarantee DRM: viewers can still obtain bytes or screen-record.
+test("Homepage uses a playable MP4 without a public Download action", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const js = readFileSync(new URL("../app.js", import.meta.url), "utf8");
-  assert.doesNotMatch(html, /exerciseSpotlight|daily-lift-chest-fly-test\.mp4|FIRST VIDEO TEST/i);
-  assert.doesNotMatch(js, /getElementById\("exerciseSpotlight"\)/);
-  assert.match(js, /\/media\/latest\.json/);
-  assert.match(js, /\/media\/exercise-preview\.svg/);
-  assert.doesNotMatch(js, /\/media\/daily-lift-latest\.mp4|el\("video"\)|createElement\("video"\)/);
+  const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+  assert.ok(!html.includes("exerciseSpotlight"));
+  assert.ok(!html.includes("daily-lift-chest-fly-test.mp4"));
+  assert.ok(js.includes("/media/latest.json"));
+  assert.ok(js.includes("/media/daily-lift-latest.mp4"));
+  assert.ok(js.includes("video.controls = false"));
+  assert.ok(js.includes("nodownload noremoteplayback"));
+  assert.ok(js.includes("disablePictureInPicture = true"));
+  assert.ok(js.includes("exercise-player-controls"));
+  assert.ok(!js.includes("download.href"));
+  assert.ok(css.includes(".exercise-video"));
   const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
-  assert.ok(config.redirects.some(r => r.source === "/media/daily-lift-latest.mp4" && r.destination.endsWith(".svg")));
-  assert.ok(config.redirects.some(r => r.source === "/media/daily-lift-chest-fly-test.mp4" && r.destination.endsWith(".svg")));
-  assert.ok(!existsSync(new URL("../media/daily-lift-latest.mp4", import.meta.url)));
+  assert.ok(!config.redirects.some(r => r.source === "/media/daily-lift-latest.mp4"));
+  assert.ok(config.redirects.some(r => r.source === "/media/daily-lift-chest-fly-test.mp4"));
+  assert.ok(existsSync(new URL("../media/daily-lift-latest.mp4", import.meta.url)));
   assert.ok(!existsSync(new URL("../media/daily-lift-chest-fly-test.mp4", import.meta.url)));
-  assert.match(js, /Explore more exercises on TikTok/);
-  assert.match(js, /Watch this exercise on TikTok/);
+  assert.ok(js.includes("Explore more exercises on TikTok"));
+  assert.ok(js.includes("Watch this exercise on TikTok"));
 });

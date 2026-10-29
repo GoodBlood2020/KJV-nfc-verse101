@@ -188,8 +188,8 @@ async function loadDaily() {
   }
 }
 
-// Public metadata and a static, illustrated preview only. Posting-ready NAS MP4
-// files are restricted to the owner-signed-in Studio workflow.
+// Public exercise viewing with custom controls and no download action.
+// Private owner download stays in the signed-in DailyLift Studio workspace.
 async function loadLatestExercisePreview() {
   try {
     const response = await fetch("/media/latest.json", { cache: "no-store" });
@@ -215,20 +215,83 @@ async function loadLatestExercisePreview() {
       data.reference.length <= 48 ? data.reference : fallback.reference;
 
     const card = el("section", "card exercise-spotlight");
-    card.setAttribute("aria-label", "Today's DailyLift exercise preview");
+    card.setAttribute("aria-label", "Today's DailyLift exercise video");
     card.append(el("p", "daily-eyebrow", "TODAY'S EXERCISE SPOTLIGHT · " + data.date));
     card.append(el("h2", "", title));
     card.append(el("p", "spotlight-description", "A daily movement with purpose."));
-    const image = el("img", "exercise-preview-image");
-    image.src = "/media/exercise-preview.svg";
-    image.alt = "Illustrated exercise preview. The full posting video is not available on this public page.";
-    image.loading = "lazy";
-    image.decoding = "async";
-    image.width = 960;
-    image.height = 540;
-    card.append(image);
+    // Custom playback controls intentionally omit any public Download action.
+    // Note: playback still transmits video bytes; client-side controls are not DRM.
+    const player = el("div", "exercise-player");
+    const video = el("video", "exercise-video");
+    video.controls = false;
+    video.playsInline = true;
+    video.preload = "metadata";
+    video.disablePictureInPicture = true;
+    video.disableRemotePlayback = true;
+    video.setAttribute("controlsList", "nodownload noremoteplayback nofullscreen");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("aria-label", title + " exercise video demonstration");
+    video.src = "/media/daily-lift-latest.mp4?v=" + encodeURIComponent(
+      typeof data.sha256 === "string" && /^[a-f0-9]{64}$/i.test(data.sha256)
+        ? data.sha256 : data.date + "-" + data.slug);
+    video.addEventListener("contextmenu", event => event.preventDefault());
+    const bar = el("div", "exercise-player-controls");
+    const play = el("button", "exercise-play", "▶ Play");
+    play.type = "button";
+    play.setAttribute("aria-label", "Play exercise video");
+    const seek = el("input", "exercise-seek");
+    seek.type = "range";
+    seek.min = "0"; seek.max = "100"; seek.step = "1"; seek.value = "0";
+    seek.setAttribute("aria-label", "Seek through exercise video");
+    const time = el("span", "exercise-time", "0:00 / 0:00");
+    const mute = el("button", "exercise-mute", "Sound on");
+    mute.type = "button";
+    mute.setAttribute("aria-label", "Mute video");
+    const fmt = n => Number.isFinite(n) ? Math.floor(n / 60) + ":" +
+      String(Math.floor(n % 60)).padStart(2, "0") : "0:00";
+    const updateTime = () => {
+      const duration = video.duration;
+      time.textContent = fmt(video.currentTime) + " / " + fmt(duration);
+      seek.value = Number.isFinite(duration) && duration > 0
+        ? String(Math.round(100 * video.currentTime / duration)) : "0";
+    };
+    const updatePlay = () => {
+      const paused = video.paused;
+      play.textContent = paused ? "▶ Play" : "❚❚ Pause";
+      play.setAttribute("aria-label", paused ? "Play exercise video" : "Pause exercise video");
+    };
+    play.addEventListener("click", () => {
+      if (video.paused) video.play().catch(() => {
+        play.textContent = "Tap to play";
+      });
+      else video.pause();
+    });
+    video.addEventListener("click", () => play.click());
+    video.addEventListener("loadedmetadata", updateTime);
+    video.addEventListener("timeupdate", updateTime);
+    video.addEventListener("play", updatePlay);
+    video.addEventListener("pause", updatePlay);
+    video.addEventListener("ended", updatePlay);
+    seek.addEventListener("input", () => {
+      if (Number.isFinite(video.duration) && video.duration > 0)
+        video.currentTime = Number(seek.value) / 100 * video.duration;
+    });
+    mute.addEventListener("click", () => {
+      video.muted = !video.muted;
+      mute.textContent = video.muted ? "Sound off" : "Sound on";
+      mute.setAttribute("aria-label", video.muted ? "Unmute video" : "Mute video");
+    });
+    video.addEventListener("error", () => {
+      video.remove();
+      seek.disabled = true;
+      play.disabled = true;
+      time.textContent = "Video temporarily unavailable";
+    });
+    bar.append(play, seek, time, mute);
+    player.append(video, bar);
+    card.append(player);
     card.append(el("p", "spotlight-verse", reference + " · KJV"));
-    card.append(el("p", "spotlight-description", "Illustrative preview only · Full video is reserved for private posting."));
+    card.append(el("p", "spotlight-description", "Watch this exercise here. Posting downloads are available only in your signed-in Studio workspace."));
 
     // Only link to a specific TikTok video when the manifest supplies a valid
     // link; otherwise show the creator profile. No MP4 URLs are exposed.
