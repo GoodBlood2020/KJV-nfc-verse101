@@ -3,5 +3,32 @@
     "api/verse.js": {
       "includeFiles": "verses.kjv.references.json"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/media/daily-lift-latest.mp4",
+      "destination": "/media/exercise-preview.svg",
+      "permanent": false
+    },
+    {
+      "source": "/media/daily-lift-chest-fly-test.mp4",
+      "destination": "/media/exercise-preview.svg",
+      "permanent": false
+    }
+  ],
+  "headers": [
+    {
+      "source": "/media/exercise-preview.svg",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/svg+xml; charset=utf-8"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ]
 }
