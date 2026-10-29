@@ -23,3 +23,13 @@ The public repository contains today's public viewing copy and can retain older 
 ## Preserved automation
 
 DailyLift v2 generator, NAS scheduled jobs, archive receipts, NAS catalog, private previews, TikTok posting workspace, and trainer website/enrollment remain separate.
+
+## Compact TikTok layout processor integration (optional)
+
+The independent `dailylift-tiktok-layout` processor reads the generator ReadyToPost and Published folders *read-only* and creates distinct 720x1280 MP4s under `/volume1/DailyLift-Private/Output/ReadyForTikTok`. It never modifies the original.
+
+To publish that better-composed MP4 to the public NFC website automatically, **after testing the processor**, mount its private output into the existing GitHub public-video publisher as `- /volume1/DailyLift-Private/Output/ReadyForTikTok:/optimized:ro`, set its environment `DAILY_LIFT_OPTIMIZED_DIR: /optimized`, and replace only the publisher’s installed script with the latest `nas/publish-latest.py`. The source update alone does not modify the running NAS container. Back up the publisher project config first and preserve its existing secret and read-only original mount.
+
+With this optional variable enabled, the publisher waits for the optimized version of the same filename and will not upload the raw old-layout video. Once optimized bytes are available, it uploads the MP4 plus a manifest with `layoutVersion: "compact-v3"`; the website then adjusts its action-only center crop. The authenticated Studio posting workflow remains separate, and the optimized file should be selected directly from the private NAS folder for TikTok.
+
+**Timing:** The processor waits 90 seconds for the source to settle; the publisher waits 120 seconds for an optimized video, then checks every five minutes. Confirm logs and the live website before assuming tomorrow’s scheduled post has the new layout.

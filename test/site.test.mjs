@@ -110,6 +110,7 @@ test("Homepage uses a playable MP4 without a public Download action", () => {
   assert.ok(!html.includes("daily-lift-chest-fly-test.mp4"));
   assert.ok(js.includes("/media/latest.json"));
   assert.ok(js.includes("/media/daily-lift-latest.mp4"));
+  assert.ok(js.includes("data.layoutVersion === \"compact-v3\""));
   assert.ok(js.includes("video.controls = false"));
   assert.ok(js.includes("nodownload noremoteplayback"));
   assert.ok(js.includes("disablePictureInPicture = true"));
