@@ -94,7 +94,7 @@ h1{margin:12px 0 8px;font-size:clamp(36px,8vw,46px);letter-spacing:-.045em;line-
 .exercise-spotlight h2{font-size:23px;margin:10px 0 4px;letter-spacing:-.02em}
 .spotlight-description{color:var(--muted);font-size:14px;line-height:1.5}
 /* Compact, responsive MP4 player. Public controls intentionally have no Download action. */
-.exercise-player{width:min(100%,460px);margin:18px auto;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#090b12;box-shadow:0 12px 28px #0004}
+.exercise-player{width:min(100%,460px);margin:12px auto 7px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#090b12;box-shadow:0 12px 28px #0004}
 .exercise-video{display:block;width:100%;max-height:min(68vh,640px);aspect-ratio:9/16;object-fit:contain;background:#090b12;cursor:pointer}
 .exercise-player-controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:11px 12px;background:#17251e;color:#f3f8f3}
 .exercise-play,.exercise-mute{font:700 13px/1.4 system-ui,sans-serif;background:#a4ce8a;color:#152b1b;border:0;border-radius:8px;min-height:43px;padding:8px 11px;cursor:pointer;white-space:nowrap}
@@ -105,7 +105,8 @@ h1{margin:12px 0 8px;font-size:clamp(36px,8vw,46px);letter-spacing:-.045em;line-
 .exercise-player-controls button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:500px){.exercise-player{width:100%}.exercise-video{max-height:63vh}.exercise-player-controls{gap:7px;padding:9px}.exercise-time{order:3;width:100%;text-align:center}}
 
-.spotlight-verse{color:#d2c8ff;margin:16px 0 6px}
+.spotlight-verse{color:#d2c8ff;margin:10px 0 4px;font-size:clamp(15px,2vw,18px)}
+.exercise-spotlight .daily-tiktok-profile{margin-top:12px}
 /* Visible focus helps keyboard users identify the active control. */
 .btn:focus-visible,.daily-select:focus-visible,.daily-exercise:focus-within{outline:3px solid #d2c8ff;outline-offset:3px}
 /* On small phones, wrap exercise amounts beneath their names. */
