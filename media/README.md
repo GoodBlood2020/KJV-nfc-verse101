@@ -1,7 +1,14 @@
-# Daily Lift published video exports
+# DailyLift public media — STILL IMAGES ONLY
 
-Place **finished, licensed, edited** Daily Lift MP4 exports here only when their public website/social-media use is allowed by the applicable license.
+This folder is deployed to the public DailyLift by DJ website and is accessible to anyone with a link or NFC tag.
 
-First planned file: `daily-lift-chest-fly-test.mp4` (the 8-second branded NAS output, not the raw MoveKit source).
+NEVER commit, upload or publish MP4, WebM, MOV, source exercise footage, purchased exercise assets or posting-ready NAS videos here.
 
-Do not upload the purchased MoveKit archive, original exercise animations, metadata containing private license IDs, or raw stock assets to this public repository. For a larger library, use managed media storage instead of filling Git history with videos.
+- `latest.json` holds non-sensitive public daily exercise metadata (title, date, verse reference, slug, checksum).
+- `exercise-preview.svg` is a static illustrated image, not footage from the private NAS.
+- Posting-ready video stays on the UGREEN NAS. The Studio NAS media workflows remain owner-authenticated.
+- The two known legacy MP4 URLs redirect to the SVG through `vercel.json`.
+
+**Urgent NAS operator action:** Update the copy of `nas/publish-latest.py` mounted in the currently running GitHub publisher container and restart only that publisher. This GitHub source change does not update an existing NAS container. Until then, pause only the public GitHub uploader or revoke its fine-grained Contents write token so it cannot re-upload tomorrow's MP4. Preserve the generator, archive, NAS catalog and Studio.
+
+Previously committed MP4 objects may remain accessible in public Git history and cached copies. Removing files from the current branch cannot revoke those copies.
