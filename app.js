@@ -231,6 +231,11 @@ async function loadLatestExercisePreview() {
     video.setAttribute("controlsList", "nodownload noremoteplayback nofullscreen");
     video.setAttribute("playsinline", "");
     video.setAttribute("aria-label", title + " exercise video demonstration");
+    if (data.layoutVersion === "compact-v3") {
+      // Optimized MP4 action moves upward in the composition.
+      // Keep the public player center crop focused on motion only.
+      video.style.objectPosition = "50% 40%";
+    }
     video.src = "/media/daily-lift-latest.mp4?v=" + encodeURIComponent(
       typeof data.sha256 === "string" && /^[a-f0-9]{64}$/i.test(data.sha256)
         ? data.sha256 : data.date + "-" + data.slug);
