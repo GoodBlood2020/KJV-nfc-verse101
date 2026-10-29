@@ -115,6 +115,15 @@ test("Homepage uses a playable MP4 without a public Download action", () => {
   assert.ok(js.includes("nodownload noremoteplayback"));
   assert.ok(js.includes("disablePictureInPicture = true"));
   assert.ok(js.includes("exercise-player-controls"));
+  assert.ok(js.includes("exercise-story-header"));
+  assert.ok(js.includes("exercise-story-title"));
+  assert.ok(js.includes("exercise-story-focus"));
+  assert.ok(js.includes("exercise-story-verse-text"));
+  assert.ok(js.includes("Psalm 23:2"));
+  assert.ok(js.includes("Galatians 6:9"));
+  assert.ok(js.includes("Move with purpose. Stay consistent."));
+  assert.ok(css.includes(".exercise-story-scripture"));
+  assert.ok(css.includes(".exercise-story-motion"));
   assert.ok(!js.includes("download.href"));
   assert.ok(css.includes(".exercise-video"));
   const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
