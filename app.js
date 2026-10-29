@@ -214,14 +214,50 @@ async function loadLatestExercisePreview() {
       /^[1-3]?\s*[A-Za-z]+(?:\s+[A-Za-z]+)*\s+\d{1,3}:\d{1,3}(?:-\d{1,3})?$/.test(data.reference) &&
       data.reference.length <= 48 ? data.reference : fallback.reference;
 
+    // Show the workout title, movement focus and scripture around the actual
+    // footage. The 16:9 motion crop deliberately hides the original MP4's
+    // distant title/verse bands, so these must remain visible HTML content.
+    // For a future optimized MP4, the same layout also remains accessible.
+    const verseTextByReference = {
+      "Psalm 23:2": "He maketh me to lie down in green pastures: he leadeth me beside the still waters.",
+      "Galatians 6:9": "And let us not be weary in well doing: for in due season we shall reap, if we faint not.",
+      "Philippians 3:14": "I press toward the mark for the prize of the high calling of God in Christ Jesus.",
+      "Philippians 4:13": "I can do all things through Christ which strengtheneth me.",
+      "Proverbs 16:3": "Commit thy works unto the LORD, and thy thoughts shall be established.",
+      "Isaiah 40:31": "But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.",
+      "Psalm 46:10": "Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth.",
+      "2 Timothy 1:7": "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.",
+      "Psalm 118:24": "This is the day which the LORD hath made; we will rejoice and be glad in it.",
+      "1 Corinthians 9:24": "Know ye not that they which run in a race run all, but one receiveth the prize? So run, that ye may obtain."
+    };
+    const verseText = typeof data.verseText === "string" &&
+      data.verseText.trim().length > 0 && data.verseText.length <= 500 &&
+      !/[<>]/.test(data.verseText) ? data.verseText.trim() :
+      verseTextByReference[reference] || "";
+    const focusBySlug = {
+      "chest-fly": "CHEST", "dumbbell-chest-fly": "CHEST",
+      "pull-ups": "BACK", "banded-ankle-dorsiflexion-mobilization": "ANKLE MOBILITY"
+    };
+    const suppliedFocus = Array.isArray(data.primaryMuscles) ?
+      data.primaryMuscles.filter(m => typeof m === "string" &&
+        /^[a-zA-Z][a-zA-Z -]{1,30}$/.test(m)).slice(0, 2).join(" · ") : "";
+    const focus = suppliedFocus || focusBySlug[data.slug] || "";
     const card = el("section", "card exercise-spotlight");
     card.setAttribute("aria-label", "Today's DailyLift exercise video");
     card.append(el("p", "daily-eyebrow", "TODAY'S EXERCISE SPOTLIGHT · " + data.date));
-    card.append(el("h2", "", title));
-    card.append(el("p", "spotlight-description", "A daily movement with purpose."));
+    const player = el("div", "exercise-player");
+    const storyHeader = el("header", "exercise-story-header");
+    storyHeader.append(el("p", "exercise-story-brand", "DAILYLIFT BY DJ  ·  FAITH + FITNESS"));
+    storyHeader.append(el("h2", "exercise-story-title", title));
+    if (focus) storyHeader.append(el("span", "exercise-story-focus", "FOCUS: " + focus.toUpperCase()));
+    const motion = el("div", "exercise-story-motion");
+    const scripture = el("section", "exercise-story-scripture");
+    scripture.setAttribute("aria-label", "Daily Bible verse");
+    scripture.append(el("h3", "spotlight-verse", reference + " · KJV"));
+    if (verseText) scripture.append(el("blockquote", "exercise-story-verse-text", verseText));
+    scripture.append(el("p", "exercise-story-close", "Move with purpose. Stay consistent."));
     // Custom playback controls intentionally omit any public Download action.
     // Note: playback still transmits video bytes; client-side controls are not DRM.
-    const player = el("div", "exercise-player");
     const video = el("video", "exercise-video");
     video.controls = false;
     video.playsInline = true;
@@ -293,9 +329,9 @@ async function loadLatestExercisePreview() {
       time.textContent = "Video temporarily unavailable";
     });
     bar.append(play, seek, time, mute);
-    player.append(video, bar);
+    motion.append(video);
+    player.append(storyHeader, motion, scripture, bar);
     card.append(player);
-    card.append(el("p", "spotlight-verse", reference + " · KJV"));
 
 
     // Only link to a specific TikTok video when the manifest supplies a valid
