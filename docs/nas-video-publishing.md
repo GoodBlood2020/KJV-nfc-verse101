@@ -1,66 +1,28 @@
-# Zero-additional-storage-subscription NAS video publishing
+# DailyLift private posting and public image preview
 
-Daily Lift can use the **existing** UGREEN NAS + GitHub + Vercel accounts.
-No Cloudflare R2 account, new cloud storage subscription, NAS port forwarding,
-or third-party video host is required.
+## Security boundary
 
-## How it works
+- Private NAS: finished, posting-ready MP4 files stay on the UGREEN NAS.
+- Private Studio: the owner-signed-in `/tiktok` and `/media` workflows request temporary NAS previews through protected `/api/nas/preview/*` endpoints. These previews may be reduced size and are NOT verified original-size posting downloads.
+- Public website and NFC visitors: the image `media/exercise-preview.svg`, exercise title, date, verse, and optional TikTok profile link. The public page no longer embeds MP4.
+- The public `media/latest.json` contains metadata only. Older GitHub commits may still contain MP4 blobs.
 
-1. The network-isolated NAS generator writes finished videos into
-   `DailyLift-Private/Output/ReadyToPost`, retaining originals privately.
-2. A **separate** non-root publisher container reads the most recent completed
-   MP4 and pushes a public copy to the existing GitHub repo using a fine-grained
-   GitHub access token restricted to `GoodBlood2020/KJV-nfc-verse101`.
-3. It updates **two files** on branch `main`:
-   - `media/daily-lift-latest.mp4` (one live file replaced daily)
-   - `media/latest.json` (date + known exercise slug)
-4. GitHub triggers an automatic Vercel deployment; the website loads the
-   latest manifest and displays the new video.
-5. If publishing hasn't been configured or fails, the website keeps working:
-   the daily workout and KJV verse are independent, and the existing static
-   Chest Fly spotlight stays available.
+## Required NAS publisher change (urgent)
 
-Manifest example:
-```json
-{"date":"2026-10-27","slug":"pull-ups","sha256":"<hex sha256 of video>"}
-```
-`sha256` is used by the publisher to skip unchanged videos; the website
-requires only `date` and `slug`. Allowed slugs: `chest-fly`, `pull-ups`.
+The repository version of `nas/publish-latest.py` now uploads public metadata JSON ONLY, and never writes video bytes into GitHub. **This change does not propagate to a script already mounted into a running NAS container.** The old uploader polls every five minutes and may publish another MP4 when the selected exercise or date changes.
 
-## No automatic publishing until authorized
+1. In UGREEN NAS, identify the separate DailyLift GitHub public video publisher Docker container/Compose stack. Do not stop the generator, NAS media catalog, verified archive or TikTok workspace.
+2. Pause only that GitHub MP4 uploader before another daily upload, OR revoke the uploader's fine-grained GitHub Contents write token. Do not expose or paste that token.
+3. Replace its mounted `publish-latest.py` from the current GitHub `nas/publish-latest.py` file, preserving the original read-only NAS paths and mounts.
+4. Restart ONLY the metadata publisher. Look for log text: `Published public metadata only; private MP4 never uploaded.` Verify the installed script has no video-upload call.
+5. After the next video selection, check GitHub public `media/`: no MP4 should be added. The live website should show the illustrated exercise card, and old MP4 paths should redirect to the SVG.
 
-Before enabling the publisher, **review the MoveKit license** and verify
-it expressly permits redistribution/public hosting of these edited sample MP4s.
-If it doesn't, use your own footage or obtain the correct license.
+## Historical copies and future access
 
-The publisher code is provided as `nas/publish-latest.py`. It is *not*
-deployed merely by merging this PR. It requires a local NAS read-only token
-file and an additional Docker Compose project.
+Removing the MP4 files from the current branch does not erase them from public Git history, older Vercel deployments, third-party caches or recipients' devices. Consider making the GitHub repository private (after checking the Vercel Git connection) and rotating the old uploader token. Even a private repository does not protect an MP4 if Vercel serves it at a public URL.
 
-Steps after license approval:
+The private Studio NAS preview is already behind owner login. A true full-resolution, posting-ready **download button** requires an authenticated NAS-side export path and remains a separate feature to verify; this update does not claim to have implemented one.
 
-1. Create a fine-grained GitHub PAT with **Contents: Read and write**, scoped
-   to **only** `GoodBlood2020/KJV-nfc-verse101`. No admin/workflow permissions.
-   Use a reasonable expiration and plan token rotation.
-2. Store it only in a NAS private file readable by UID 1006; don't paste it
-   into GitHub files, Docker Compose, screenshots, or chat.
-3. Put `nas/publish-latest.py` in the private NAS automation folder and mount
-   it and the token read-only in a non-root publisher container. Mount
-   `ReadyToPost` read-only. The publisher needs outbound HTTPS only.
-4. Verify the upload logs, the new GitHub commit, and the Vercel deployment.
-   Existing `daily-lift-scheduled` should keep `network_mode: none`.
+## Unchanged workflows
 
-## Limits and tradeoffs
-
-- GitHub is **not** intended as long-term streaming video storage. It recommends
-  a single Git object under 1 MB and enforces a 100 MB limit. Replacing the
-  same MP4 keeps the current branch small, but Git history still grows.
-  Track file sizes and repository growth; stop this approach if videos get
-  large, traffic is heavy, or the media license forbids publication.
-- Vercel's Hobby plan has usage and non-commercial restrictions. It may stop
-  serving or deploying beyond its limits. This setup is not a guarantee of
-  unlimited free hosting.
-- The NAS stays the master copy and archive; GitHub has **one public copy**
-  for viewers. Visitors do not directly connect to the NAS.
-- This does not post videos to TikTok. The website's daily workout-plan
-  rotation and the latest NAS video are separate features.
+NAS generation, read-only source mounts, archive receipts, private video catalog, TikTok workspace, and the verse/daily plan remain separate and unchanged. The new public site uses metadata and a static image only.
