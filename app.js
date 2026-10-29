@@ -188,15 +188,13 @@ async function loadDaily() {
   }
 }
 
-// A separate published copy of the latest *finished* NAS video is placed in
-// GitHub's media folder; Vercel deploys it with the website. The NAS stays private.
-// The feed remains invisible until a publisher uploads both files.
-async function loadLatestNasVideo() {
+// Public metadata and a static, illustrated preview only. Posting-ready NAS MP4
+// files are restricted to the owner-signed-in Studio workflow.
+async function loadLatestExercisePreview() {
   try {
     const response = await fetch("/media/latest.json", { cache: "no-store" });
     if (!response.ok) return;
     const data = await response.json();
-    // Imported MoveKit exercises are named by their manifest (not hard-coded).
     if (!data || typeof data.date !== "string" ||
         !/^\d{4}-\d{2}-\d{2}$/.test(data.date) ||
         typeof data.slug !== "string" ||
@@ -215,26 +213,25 @@ async function loadLatestNasVideo() {
     const reference = typeof data.reference === "string" &&
       /^[1-3]?\s*[A-Za-z]+(?:\s+[A-Za-z]+)*\s+\d{1,3}:\d{1,3}(?:-\d{1,3})?$/.test(data.reference) &&
       data.reference.length <= 48 ? data.reference : fallback.reference;
-    const cacheKey = typeof data.sha256 === "string" && /^[a-f0-9]{64}$/.test(data.sha256)
-      ? data.sha256 : data.date + "-" + data.slug;
-    const card = el("section", "card exercise-spotlight");
-    card.setAttribute("aria-label", "Latest DailyLift by DJ exercise video");
-    card.append(el("p", "daily-eyebrow", "LATEST DAILYLIFT BY DJ VIDEO · " + data.date));
-    card.append(el("h2", "", title));
-    card.append(el("p", "spotlight-description", "NAS-generated exercise demonstration"));
-    const player = el("video");
-    player.controls = true;
-    player.playsInline = true;
-    player.preload = "metadata";
-    player.setAttribute("aria-label", title + " exercise demonstration");
-    player.src = "/media/daily-lift-latest.mp4?v=" + encodeURIComponent(cacheKey);
-    player.addEventListener("error", () => card.remove());
-    card.append(player);
-    card.append(el("p", "spotlight-verse", reference + " · KJV"));
 
-    // Do not link today's exercise to the legacy Chest Fly TikTok post.
-    // A video-specific link appears only if the NAS manifest supplies a valid
-    // TikTok URL. Otherwise the link explicitly opens DJ's creator profile.
+    const card = el("section", "card exercise-spotlight");
+    card.setAttribute("aria-label", "Today's DailyLift exercise preview");
+    card.append(el("p", "daily-eyebrow", "TODAY'S EXERCISE SPOTLIGHT · " + data.date));
+    card.append(el("h2", "", title));
+    card.append(el("p", "spotlight-description", "A daily movement with purpose."));
+    const image = el("img", "exercise-preview-image");
+    image.src = "/media/exercise-preview.svg";
+    image.alt = "Illustrated exercise preview. The full posting video is not available on this public page.";
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.width = 960;
+    image.height = 540;
+    card.append(image);
+    card.append(el("p", "spotlight-verse", reference + " · KJV"));
+    card.append(el("p", "spotlight-description", "Illustrative preview only · Full video is reserved for private posting."));
+
+    // Only link to a specific TikTok video when the manifest supplies a valid
+    // link; otherwise show the creator profile. No MP4 URLs are exposed.
     let tiktokHref = "https://www.tiktok.com/@djephthah";
     let tiktokLabel = "Explore more exercises on TikTok";
     if (typeof data.tiktokUrl === "string" && data.tiktokUrl.length <= 300) {
@@ -252,13 +249,10 @@ async function loadLatestNasVideo() {
     tiktokLink.target = "_blank";
     tiktokLink.rel = "noopener noreferrer";
     card.append(tiktokLink);
-
-    // The live feed is the only exercise video spotlight on the page.
-    // Insert it ahead of the random-verse card after the daily plan.
     if (verseCard) verseCard.before(card);
-  } catch { /* No uploaded video yet: leave the latest video absent. */ }
+  } catch { /* No verified exercise metadata: omit spotlight without affecting KJV verse. */ }
 }
-loadLatestNasVideo();
+loadLatestExercisePreview();
 
 loadDaily();
 loadVerse();
