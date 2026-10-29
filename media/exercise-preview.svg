@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="t d">
+<title id="t">DailyLift exercise preview</title>
+<desc id="d">Illustrated exercise silhouette with a resistance band, presented as a static preview. No downloadable exercise video is embedded.</desc>
+<defs>
+ <linearGradient id="back" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#162f27"/><stop offset="1" stop-color="#071d20"/></linearGradient>
+ <radialGradient id="halo"><stop stop-color="#8fe2be" stop-opacity=".15"/><stop offset="1" stop-color="#8fe2be" stop-opacity="0"/></radialGradient>
+ <pattern id="grid" width="38" height="38" patternUnits="userSpaceOnUse"><path d="M38 0H0V38" fill="none" stroke="#94c8af" stroke-opacity=".095"/></pattern>
+</defs>
+<rect width="960" height="540" rx="22" fill="url(#back)"/>
+<rect width="960" height="540" rx="22" fill="url(#grid)"/>
+<circle cx="649" cy="255" r="247" fill="url(#halo)"/>
+<path d="M0 454H960" stroke="#83b99c" stroke-opacity=".3" stroke-width="3"/>
+<rect x="60" y="45" width="114" height="35" rx="18" fill="#b9e586"/>
+<text x="117" y="69" text-anchor="middle" fill="#143021" font-size="15" font-family="Arial,sans-serif" font-weight="800" letter-spacing="2">PREVIEW</text>
+<text x="62" y="131" fill="#ecf9ed" font-family="Arial,sans-serif" font-size="49" font-weight="900" letter-spacing="-2">MOVE WITH</text>
+<text x="62" y="181" fill="#b9e586" font-family="Arial,sans-serif" font-size="49" font-weight="900" letter-spacing="-2">PURPOSE.</text>
+<text x="64" y="227" fill="#b5cfc4" font-family="Arial,sans-serif" font-size="20">Today's movement spotlight</text>
+<text x="64" y="482" fill="#a6cbe1" font-family="Arial,sans-serif" font-size="18" letter-spacing="3">DAILYLIFT BY DJ</text>
+<text x="64" y="505" fill="#8fab9f" font-family="Arial,sans-serif" font-size="13" letter-spacing="1">STATIC EXERCISE PREVIEW</text>
+<!-- Simple illustrated resistance-band movement, not private source footage. -->
+<g transform="translate(510 50)">
+ <path d="M57 340H355" stroke="#a7c5b0" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+ <path d="M285 38V345M285 38H399M399 38V345M280 179H399" stroke="#7fa594" stroke-opacity=".5" stroke-width="15" fill="none" stroke-linecap="round"/>
+ <path d="M102 360V322H200V360" fill="#526c60" stroke="#a8d0b8" stroke-width="3"/>
+ <circle cx="160" cy="82" r="36" fill="#b7cabe"/>
+ <path d="M158 120Q133 165 153 232L188 238Q205 174 175 122Z" fill="#9db1a6"/>
+ <path d="M153 145L105 205L134 227L166 192M175 155L223 196L251 180" stroke="#9db1a6" stroke-width="23" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+ <path d="M170 236L134 316L102 315M188 238L242 318L281 320" stroke="#b7cabe" stroke-width="28" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+ <path d="M91 319H133M278 323H302" stroke="#d9e8dd" stroke-width="13" stroke-linecap="round"/>
+ <path d="M251 180Q310 194 334 146" stroke="#b9e586" stroke-width="12" fill="none" stroke-linecap="round"/>
+ <circle cx="334" cy="146" r="9" fill="#c8f192"/>
+ <path d="M350 137L380 112M354 157L382 173" stroke="#a8d47f" stroke-width="3" stroke-linecap="round"/>
+</g>
+</svg>
