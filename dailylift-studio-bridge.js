@@ -1,7 +1,8 @@
 // DailyLift Studio published-content bridge. Daily workouts and NAS video remain independent.
 (async()=>{try{
  const endpoint='https://dailylift-studio-independent.vercel.app/api/public/daily';
- const response=await fetch(endpoint,{cache:'no-store'});
+ // Respect the Studio CDN's short-lived cache; do not force a Blob read on every visit.
+ const response=await fetch(endpoint,{cache:'default'});
  if(!response.ok)return;
  const result=await response.json();
  if(!result?.ready||!result.content)return;
