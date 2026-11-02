@@ -119,7 +119,25 @@ async function handle(req){
   if(req.method!=="GET"&&req.method!=="HEAD")
     return respond("Method Not Allowed","text/plain; charset=utf-8",405,{allow:"GET, HEAD"});
   const path=url.pathname;
-  if(path==="/health")return json({status:"preview",service:"DailyLift by DJ",version:"cloudflare-staging-2026-11-02",r2:false,nas:false,vercel_dependency:false,video_migrated:false});
+  if(path==="/health")return json({status:"preview",service:"DailyLift by DJ",version:"cloudflare-staging-2026-11-02",r2:false,nas:false,vercel_dependency:"temporary_video_only",video_migrated:false});
+  // Temporary migration bridge: video bytes are NEVER proxied through Cloudflare.
+  // The browser receives a redirect to the existing Vercel video URL instead.
+  // This is not a completed migration and retains Vercel bandwidth dependence.
+  if(path==="/media/daily-lift-latest.mp4"){
+    const suffix=/^\\?v=[a-f0-9-]{1,80}$/i.test(url.search)?url.search:"";
+    return new Response(null,{status:307,headers:{...baseHeaders,"cache-control":"no-store",location:"https://dailylift-by-dj.vercel.app/media/daily-lift-latest.mp4"+suffix}});
+  }
+  if(path==="/media/latest.json"){
+    try{
+      const response=await fetch("https://dailylift-by-dj.vercel.app/media/latest.json",{cache:"no-store",signal:AbortSignal.timeout(5000)});
+      if(!response.ok)return json({error:"Video metadata unavailable"},503);
+      const data=await response.json();
+      if(!data||typeof data.date!=="string"||!/^\\d{4}-\\d{2}-\\d{2}$/.test(data.date)||
+         typeof data.slug!=="string"||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug))
+        return json({error:"Invalid video metadata"},502);
+      return json(data);
+    }catch{return json({error:"Video metadata temporarily unavailable"},503)}
+  }
   if(path==="/api/daily")return json(getDailyContent());
   if(path==="/api/verse")return json(await randomVerse());
   let body,type;
