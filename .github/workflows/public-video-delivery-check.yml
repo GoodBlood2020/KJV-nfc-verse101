@@ -15,7 +15,9 @@ jobs:
           node-version: '24'
       - name: Install temporary browser controller
         run: npm install --no-save --no-package-lock playwright
-      - name: Verify video in headless Chrome
+      - name: Verify candidate source in Chrome before Cloudflare deployment
+        run: node test/candidate-worker-browser.mjs
+      - name: Verify deployed Cloudflare video in headless Chrome
         run: node test/browser-playback.mjs
       - name: Verify publisher and Cloudflare playback route without changing NAS
         shell: bash
