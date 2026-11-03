@@ -10,6 +10,8 @@ try {
   }catch(e){console.log('GITHUB_DIRECT_PLAYBACK_FAIL',e.message.slice(0,180));}
   await direct.close();
   const page=await browser.newPage();
+  // CI must not inflate real visitor counters.
+  await page.route('**/api/pageview',route=>route.fulfill({status:204,body:''}));
   const response=await page.goto('https://daily.dailyliftbydj-nas.workers.dev/',{waitUntil:'domcontentloaded'});
   if (response?.status()!==200) throw Error('Homepage unavailable');
   const liveCode=await page.evaluate(async()=>await (await fetch('/app.js',{cache:'no-store'})).text());
@@ -28,6 +30,7 @@ try {
   await page.waitForFunction(()=>document.querySelector('video.exercise-video')?.currentTime>0.05,{timeout:20000});
   console.log('BROWSER_PLAYBACK_PASS',await video.evaluate(e=>({width:e.videoWidth,height:e.videoHeight,elapsed:e.currentTime})));
   const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  await mobile.route('**/api/pageview',route=>route.fulfill({status:204,body:''}));
   const mobileRes=await mobile.goto('https://daily.dailyliftbydj-nas.workers.dev/',{waitUntil:'domcontentloaded'});
   if(mobileRes?.status()!==200)throw Error('Mobile homepage failed');
   const mobileVideo=mobile.locator('video.exercise-video');
