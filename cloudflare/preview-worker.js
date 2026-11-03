@@ -129,7 +129,7 @@ async function handle(req){
   }
   if(path==="/media/latest.json"){
     try{
-      const response=await fetch("https://dailylift-by-dj.vercel.app/media/latest.json",{cache:"no-store",signal:AbortSignal.timeout(5000)});
+      const response=await fetch("https://raw.githubusercontent.com/GoodBlood2020/KJV-nfc-verse101/main/media/latest.json",{cache:"no-store",signal:AbortSignal.timeout(5000)});
       if(!response.ok)return json({error:"Video metadata unavailable"},503);
       const data=await response.json();
       if(!data||typeof data.date!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(data.date)||
