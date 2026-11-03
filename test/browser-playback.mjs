@@ -12,6 +12,10 @@ try {
   const page=await browser.newPage();
   const response=await page.goto('https://daily.dailyliftbydj-nas.workers.dev/',{waitUntil:'domcontentloaded'});
   if (response?.status()!==200) throw Error('Homepage unavailable');
+  const liveCode=await page.evaluate(async()=>await (await fetch('/app.js',{cache:'no-store'})).text());
+  const slash=String.fromCharCode(92);
+  if(!liveCode.includes('/^'+slash+'d{4}-'+slash+'d{2}-'+slash+'d{2}$/'))throw Error('Live Cloudflare still has invalid date matcher');
+  console.log('LIVE_DATE_MATCHER_FIXED');
   page.on('pageerror', e=>console.log('BROWSER_SCRIPT_ERROR',e.message.slice(0,300)));
   page.on('console',m=>{if(m.type()==='error')console.log('BROWSER_CONSOLE_ERROR',m.text().slice(0,300));});
   page.on('response',resp=>{if(/\/app\.js|\/media\/latest\.json/.test(resp.url()))console.log('NETWORK_CHECK',resp.status(),resp.url());});
