@@ -9,6 +9,14 @@ jobs:
   public-video:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install temporary browser controller
+        run: npm install --no-save --no-package-lock playwright
+      - name: Verify video in headless Chrome
+        run: node test/browser-playback.mjs
       - name: Verify publisher and Cloudflare playback route without changing NAS
         shell: bash
         run: |
