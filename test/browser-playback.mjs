@@ -1,6 +1,14 @@
 import {chromium} from 'playwright';
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox']});
 try {
+  const direct=await browser.newPage();
+  await direct.setContent('<video id="raw" muted playsinline preload="metadata" src="https://raw.githubusercontent.com/GoodBlood2020/KJV-nfc-verse101/main/media/daily-lift-latest.mp4"></video>');
+  try{
+    await direct.waitForFunction(()=>document.querySelector('#raw')?.videoWidth>0,null,{timeout:20000});
+    const result=await direct.locator('#raw').evaluate(async v=>{v.muted=true;await v.play();return {width:v.videoWidth,height:v.videoHeight,readyState:v.readyState}});
+    console.log('GITHUB_DIRECT_PLAYBACK_PASS',JSON.stringify(result));
+  }catch(e){console.log('GITHUB_DIRECT_PLAYBACK_FAIL',e.message.slice(0,180));}
+  await direct.close();
   const page=await browser.newPage();
   const response=await page.goto('https://daily.dailyliftbydj-nas.workers.dev/',{waitUntil:'domcontentloaded'});
   if (response?.status()!==200) throw Error('Homepage unavailable');
