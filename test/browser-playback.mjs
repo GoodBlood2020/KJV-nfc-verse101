@@ -27,4 +27,16 @@ try {
   await video.evaluate(async element=>{element.muted=true;await element.play()});
   await page.waitForFunction(()=>document.querySelector('video.exercise-video')?.currentTime>0.05,{timeout:20000});
   console.log('BROWSER_PLAYBACK_PASS',await video.evaluate(e=>({width:e.videoWidth,height:e.videoHeight,elapsed:e.currentTime})));
+  const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const mobileRes=await mobile.goto('https://daily.dailyliftbydj-nas.workers.dev/',{waitUntil:'domcontentloaded'});
+  if(mobileRes?.status()!==200)throw Error('Mobile homepage failed');
+  const mobileVideo=mobile.locator('video.exercise-video');
+  await mobileVideo.waitFor({timeout:20000});
+  await mobile.waitForFunction(()=>document.querySelector('video.exercise-video')?.videoWidth>0,null,{timeout:20000});
+  const box=await mobileVideo.boundingBox();
+  if(!box || box.width>400)throw Error('Mobile player exceeds phone width');
+  await mobileVideo.evaluate(async el=>{el.muted=true;await el.play();});
+  await mobile.waitForFunction(()=>document.querySelector('video.exercise-video')?.currentTime>0.05,null,{timeout:20000});
+  console.log('MOBILE_BROWSER_PLAYBACK_PASS',JSON.stringify({width:box.width,height:box.height}));
+  await mobile.close();
 } finally {await browser.close()}
