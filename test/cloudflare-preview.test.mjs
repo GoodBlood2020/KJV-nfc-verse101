@@ -64,7 +64,7 @@ test('video metadata bridge only provides verified manifest fields, never MP4 by
   const calls=[];
   const request=appWithFetch(async url=>{
     calls.push(url);
-    assert.equal(url,'https://dailylift-by-dj.vercel.app/media/latest.json');
+    assert.equal(url,'https://raw.githubusercontent.com/GoodBlood2020/KJV-nfc-verse101/main/media/latest.json');
     return Response.json({date:'2026-11-02',slug:'barbell-bench-press',title:'Barbell Bench Press',sha256:'0'.repeat(64)});
   });
   const r=await request('/media/latest.json');
@@ -75,7 +75,7 @@ test('video metadata bridge only provides verified manifest fields, never MP4 by
   assert.equal(video.status,307);
   assert.equal(video.headers.get('location'),'https://dailylift-by-dj.vercel.app/media/daily-lift-latest.mp4?v='+'a'.repeat(64));
 });
-test('temporary video metadata bridge fails closed when Vercel cannot be reached', async()=>{
+test('public video metadata fails closed when GitHub cannot be reached', async()=>{
   const request=appWithFetch(async()=>{throw Error('offline')});
   const r=await request('/media/latest.json');
   assert.equal(r.status,503);
