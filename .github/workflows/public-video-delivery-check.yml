@@ -27,6 +27,15 @@ jobs:
               print('GITHUB_MEDIA_STATUS',r.status,'MIME',r.headers.get('Content-Type'),'BYTES',len(raw),'RANGES',r.headers.get('Accept-Ranges'))
           assert len(raw)>1000 and raw[4:8]==b'ftyp','GitHub public MP4 is missing/invalid'
           assert hashlib.sha256(raw).hexdigest()==pub['sha256'],'Publisher MP4 does not match manifest'
+          for origin in ['https://dailylift-public-preview.dailyliftbydj-nas.workers.dev','https://daily.dailyliftbydj-nas.workers.dev','https://dailylift-by-dj.vercel.app']:
+              for route in ['/','/health','/media/latest.json']:
+                  try:
+                      with request(origin+route) as p:
+                          body=p.read(350)
+                          print('PROBE',origin,route,p.status, 'MIME',p.headers.get('content-type'),'SERVER',p.headers.get('server'),'BODY',repr(body[:180]),flush=True)
+                  except urllib.error.HTTPError as e:
+                      print('PROBE_ERROR',origin,route,e.code,'MIME',e.headers.get('content-type'),'SERVER',e.headers.get('server'),'BODY',repr(e.read(350)[:180]),flush=True)
+                  except Exception as e: print('PROBE_EXCEPTION',origin,route,type(e).__name__,str(e)[:90],flush=True)
           with request(cf+'/') as r:
               homepage=r.read().decode('utf-8')
               assert r.status==200 and 'DailyLift by DJ' in homepage
