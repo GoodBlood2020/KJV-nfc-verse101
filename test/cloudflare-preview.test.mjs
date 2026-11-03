@@ -38,6 +38,13 @@ test('homepage and static assets are served without Vercel API',async()=>{
   assert.equal(video.status,307);
   assert.equal(video.headers.get('location'),'https://dailylift-by-dj.vercel.app/media/daily-lift-latest.mp4');
 });
+test('embedded browser app retains date and Bible reference numeric regex escapes',async()=>{
+  const app=await appWithFetch()('/app.js');
+  assert.equal(app.status,200);
+  const browserJs=await app.text();
+  assert(browserJs.includes('/^\\d{4}-\\d{2}-\\d{2}$/'), 'Date matcher must retain\\\\d');
+  assert(browserJs.includes('\\d{1,3}'), 'Bible reference matcher must retain\\\\d');
+});
 test('daily API retains a Chicago date and curated KJV workout',async()=>{
   const r=await appWithFetch()('/api/daily');
   const d=await r.json();
