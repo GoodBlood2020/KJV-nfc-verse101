@@ -1,0 +1,65 @@
+name: DailyLift public video delivery verification
+on:
+  push:
+    branches: [migration/cloudflare-preview-public]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-video:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install temporary browser controller
+        run: npm install --no-save --no-package-lock playwright
+      - name: Verify candidate source in Chrome before Cloudflare deployment
+        run: node test/candidate-worker-browser.mjs
+      - name: Verify deployed Cloudflare video in headless Chrome
+        run: node test/browser-playback.mjs
+      - name: Verify publisher and Cloudflare playback route without changing NAS
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, urllib.error, urllib.request
+          repo='https://raw.githubusercontent.com/GoodBlood2020/KJV-nfc-verse101/main/media/'
+          cf='https://dailylift-public-preview.dailyliftbydj-nas.workers.dev'
+          def request(url, headers=None):
+              req=urllib.request.Request(url,headers={'User-Agent':'DailyLift-Playback-Gate/1', **(headers or {})})
+              return urllib.request.urlopen(req,timeout=25)
+          with request(repo+'latest.json') as r:
+              pub=json.load(r)
+          print('PUBLISHED_DATE',pub['date'],'SLUG',pub['slug'])
+          with request(repo+'daily-lift-latest.mp4') as r:
+              raw=r.read()
+              print('GITHUB_MEDIA_STATUS',r.status,'MIME',r.headers.get('Content-Type'),'BYTES',len(raw),'RANGES',r.headers.get('Accept-Ranges'))
+          assert len(raw)>1000 and raw[4:8]==b'ftyp','GitHub public MP4 is missing/invalid'
+          assert hashlib.sha256(raw).hexdigest()==pub['sha256'],'Publisher MP4 does not match manifest'
+          for origin in ['https://dailylift-public-preview.dailyliftbydj-nas.workers.dev','https://daily.dailyliftbydj-nas.workers.dev','https://dailylift-by-dj.vercel.app']:
+              for route in ['/','/health','/media/latest.json']:
+                  try:
+                      with request(origin+route) as p:
+                          body=p.read(350)
+                          print('PROBE',origin,route,p.status, 'MIME',p.headers.get('content-type'),'SERVER',p.headers.get('server'),'BODY',repr(body[:180]),flush=True)
+                  except urllib.error.HTTPError as e:
+                      print('PROBE_ERROR',origin,route,e.code,'MIME',e.headers.get('content-type'),'SERVER',e.headers.get('server'),'BODY',repr(e.read(350)[:180]),flush=True)
+                  except Exception as e: print('PROBE_EXCEPTION',origin,route,type(e).__name__,str(e)[:90],flush=True)
+          with request(cf+'/') as r:
+              homepage=r.read().decode('utf-8')
+              assert r.status==200 and 'DailyLift by DJ' in homepage
+          with request(cf+'/app.js') as r:
+              browser_js=r.read().decode('utf-8')
+              assert 'loadLatestExercisePreview' in browser_js and '/media/latest.json' in browser_js
+          with request(cf+'/media/latest.json') as r:
+              active=json.load(r)
+              print('CLOUDFLARE_MANIFEST',active.get('date'),active.get('slug'))
+          assert active['sha256']==pub['sha256'],'Cloudflare currently serves a stale manifest'
+          with request(cf+'/media/daily-lift-latest.mp4?v='+pub['sha256']) as r:
+              delivered=r.read()
+              print('VIDEO_STATUS',r.status,'FINAL_URL',r.url,'MIME',r.headers.get('Content-Type'),'BYTES',len(delivered))
+          assert delivered[4:8]==b'ftyp','Public playable source has no MP4 header'
+          assert hashlib.sha256(delivered).hexdigest()==pub['sha256'],'Cloudflare playback video does not match publisher'
+          print('PASS: Publisher, manifest, Cloudflare browser page and delivered MP4 match')
+          PY
